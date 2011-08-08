@@ -217,6 +217,26 @@ public class InvocationExpectationBuilderTest {
         }
     }
 
+    @Test
+    public void testParametersFromWithShouldBeInOrder() throws Throwable {
+
+        final Object object1 = new Object();
+        final Integer object2 = 3;
+        final Object object3 = new Object();
+
+        final MockCaptureControl mockCaptureControl = new MockCaptureControl();
+        final InvocationExpectationBuilder builder = new InvocationExpectationBuilder();
+        builder.setCardinality(Cardinality.exactly(1));
+        builder.of(mockCaptureControl);
+        builder.putParameterValueToMatcher(object1, equal(true));
+        builder.putParameterValueToMatcher(object2, equal(true));
+        builder.putParameterValueToMatcher(object3, equal(true));
+
+        assertEquals(object1, builder.getCapturedParameterMatchersStupValues().get(0));
+        assertEquals(object2, builder.getCapturedParameterMatchersStupValues().get(1));
+        assertEquals(object3, builder.getCapturedParameterMatchersStupValues().get(2));
+    }
+
 
     //-----------------------------------------------------------------------------------------
 

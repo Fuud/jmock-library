@@ -3,6 +3,7 @@ package org.jmock.internal;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -30,6 +31,7 @@ public class InvocationExpectationBuilder
     private boolean isFullySpecified = false;
     private boolean needsDefaultAction = true;
     private List<Matcher<?>> capturedParameterMatchers = new ArrayList<Matcher<?>>();
+    private List<Object> capturedParameterMatchersStupValues = new ArrayList<Object>();
     private Map<Object, Matcher<?>> objectParametersValueToMatchers = new IdentityHashMap<Object, Matcher<?>>(); // do not rely on equals on unknown objects
     private Map<Object, Matcher<?>> primitiveParametersValueToMatchers = new HashMap<Object, Matcher<?>>(); // boxing-unboxing breaks identity. Use equals.
 
@@ -47,6 +49,7 @@ public class InvocationExpectationBuilder
 
     public void putParameterValueToMatcher(Object parameterValue, Matcher<?> parameterMatcher) {
         capturedParameterMatchers.add(parameterMatcher);
+        capturedParameterMatchersStupValues.add(parameterValue);
         if (BoxingUtils.isWrapperType(parameterValue.getClass())) {
             primitiveParametersValueToMatchers.put(parameterValue, parameterMatcher);
         } else {
@@ -233,5 +236,9 @@ public class InvocationExpectationBuilder
         public Set<Character> getDuplicateCharacters() {
             return duplicateCharacters;
         }
+    }
+
+    public List<Object> getCapturedParameterMatchersStupValues() {
+        return Collections.unmodifiableList(capturedParameterMatchersStupValues);
     }
 }
