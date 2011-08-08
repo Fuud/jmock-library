@@ -1,5 +1,14 @@
 package org.jmock.internal;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.jmock.Sequence;
@@ -12,9 +21,6 @@ import org.jmock.internal.matcher.MockObjectMatcher;
 import org.jmock.syntax.MethodClause;
 import org.jmock.syntax.ParametersClause;
 import org.jmock.syntax.ReceiverClause;
-
-import java.lang.reflect.Method;
-import java.util.*;
 
 public class InvocationExpectationBuilder
         implements ExpectationCapture,
@@ -84,7 +90,7 @@ public class InvocationExpectationBuilder
         return (T) capturingImposter;
     }
 
-    public void createExpectationFrom(Invocation invocation) throws TooManyBooleansInMixParametersException {
+    public void createExpectationFrom(Invocation invocation) throws TooManyBooleansInMixParametersException, DuplicatePrimitiveValuesFromWithAndFromActualParametersException {
         expectation.setMethod(invocation.getInvokedMethod());
 
         List<Matcher<?>> parameterMatchers = new ArrayList<Matcher<?>>();
@@ -95,6 +101,7 @@ public class InvocationExpectationBuilder
             expectation.setParametersMatcher(new AllParametersMatcher(invocation.getParametersAsArray()));
         } else {
             checkForBooleans(invocation);
+            checkForDuplicates(invocation);
             for (Object parameterValue : invocation.getParametersAsArray()) {
                 if (objectParametersValueToMatchers.containsKey(parameterValue)) {
                     parameterMatchers.add(objectParametersValueToMatchers.get(parameterValue));
@@ -105,6 +112,40 @@ public class InvocationExpectationBuilder
                 }
             }
             expectation.setParametersMatcher(new AllParametersMatcher(parameterMatchers));
+        }
+    }
+
+    private void checkForDuplicates(Invocation invocation) throws DuplicatePrimitiveValuesFromWithAndFromActualParametersException {
+        Set<Boolean> duplicateBooleans = new HashSet<Boolean>();
+        Set<Byte> duplicateNumbers = new HashSet<Byte>();
+        Set<Character> duplicateCharacters = new HashSet<Character>();
+
+        final Object[] parameterValues = invocation.getParametersAsArray();
+        for (int i = 0; i < parameterValues.length; i++) {
+            Object value1 = parameterValues[i];
+            if (!primitiveParametersValueToMatchers.containsKey(value1)) {
+                continue;
+            }
+            for (int j = i + 1; j < parameterValues.length; j++) {
+                Object value2 = parameterValues[j];
+                if (value1.equals(value2)) {
+                    if (value1 instanceof Boolean) {
+                        duplicateBooleans.add((Boolean) value1);
+                    } else if (value1 instanceof Character) {
+                        duplicateCharacters.add((Character) value1);
+                    } else if (value1 instanceof Number) {
+                        final Number number = (Number) value1;
+                        if (number.longValue() < Byte.MIN_VALUE || number.longValue() > Byte.MAX_VALUE) {
+                            throw new IllegalStateException("Primitive number values for with() clause should be in byte range");
+                        }
+                        duplicateNumbers.add(number.byteValue());
+                    }
+                }
+            }
+
+            if (!duplicateBooleans.isEmpty() || duplicateNumbers.isEmpty() || duplicateCharacters.isEmpty()) {
+                throw new DuplicatePrimitiveValuesFromWithAndFromActualParametersException(duplicateBooleans, duplicateNumbers, duplicateCharacters);
+            }
         }
     }
 
@@ -169,56 +210,28 @@ public class InvocationExpectationBuilder
 
     public static final class DuplicatePrimitiveValuesFromWithAndFromActualParametersException extends Exception {
         private final Set<Boolean> duplicateBooleans;
-        private final Set<Character> duplicateChars;
-        private final Set<Short> duplicateShorts;
-        private final Set<Integer> duplicateIntegers;
-        private final Set<Long> duplicateLongs;
-        private final Set<Float> duplicateFloats;
-        private final Set<Double> duplicateDoubles;
+        private final Set<Byte> duplicateNumbers;
+        private final Set<Character> duplicateCharacters;
 
         public DuplicatePrimitiveValuesFromWithAndFromActualParametersException(
                 Set<Boolean> duplicateBooleans,
-                Set<Character> duplicateChars,
-                Set<Short> duplicateShorts,
-                Set<Integer> duplicateIntegers,
-                Set<Long> duplicateLongs,
-                Set<Float> duplicateFloats,
-                Set<Double> duplicateDoubles) {
+                Set<Byte> duplicateNumbers,
+                Set<Character> duplicateCharacters) {
             this.duplicateBooleans = duplicateBooleans;
-            this.duplicateChars = duplicateChars;
-            this.duplicateShorts = duplicateShorts;
-            this.duplicateIntegers = duplicateIntegers;
-            this.duplicateLongs = duplicateLongs;
-            this.duplicateFloats = duplicateFloats;
-            this.duplicateDoubles = duplicateDoubles;
+            this.duplicateNumbers = duplicateNumbers;
+            this.duplicateCharacters = duplicateCharacters;
         }
 
         public Set<Boolean> getDuplicateBooleans() {
             return duplicateBooleans;
         }
 
-        public Set<Character> getDuplicateChars() {
-            return duplicateChars;
+        public Set<Byte> getDuplicateNumbers() {
+            return duplicateNumbers;
         }
 
-        public Set<Short> getDuplicateShorts() {
-            return duplicateShorts;
-        }
-
-        public Set<Integer> getDuplicateIntegers() {
-            return duplicateIntegers;
-        }
-
-        public Set<Long> getDuplicateLongs() {
-            return duplicateLongs;
-        }
-
-        public Set<Float> getDuplicateFloats() {
-            return duplicateFloats;
-        }
-
-        public Set<Double> getDuplicateDoubles() {
-            return duplicateDoubles;
+        public Set<Character> getDuplicateCharacters() {
+            return duplicateCharacters;
         }
     }
 }
