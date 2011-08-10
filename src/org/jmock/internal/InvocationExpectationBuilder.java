@@ -35,6 +35,10 @@ public class InvocationExpectationBuilder
     private Map<Object, Matcher<?>> objectParametersValueToMatchers = new IdentityHashMap<Object, Matcher<?>>(); // do not rely on equals on unknown objects
     private Map<Object, Matcher<?>> primitiveParametersValueToMatchers = new HashMap<Object, Matcher<?>>(); // boxing-unboxing breaks identity. Use equals.
 
+    private Set<Boolean> forbiddenBooleans = new HashSet<Boolean>();
+    private Set<Character> forbiddenCharacter = new HashSet<Character>();
+    private Set<Byte> forbiddenNumbers = new HashSet<Byte>();
+
     public Expectation toExpectation(Action defaultAction) {
         if (needsDefaultAction) {
             expectation.setDefaultAction(defaultAction);
@@ -145,10 +149,32 @@ public class InvocationExpectationBuilder
                     }
                 }
             }
+        }
 
-            if (!duplicateBooleans.isEmpty() || duplicateNumbers.isEmpty() || duplicateCharacters.isEmpty()) {
-                throw new DuplicatePrimitiveValuesFromWithAndFromActualParametersException(duplicateBooleans, duplicateNumbers, duplicateCharacters);
+        forbiddenBooleans.addAll(duplicateBooleans);
+        forbiddenCharacter.addAll(duplicateCharacters);
+        forbiddenNumbers.addAll(duplicateNumbers);
+
+        for (Object parameterValue : parameterValues) {
+            if (primitiveParametersValueToMatchers.containsKey(parameterValue)) {//already added if duplicate
+                continue;
             }
+            if (BoxingUtils.isWrapperType(parameterValue.getClass())) {
+                if (parameterValue instanceof Boolean) {
+                    forbiddenBooleans.add((Boolean) parameterValue);
+                } else if (parameterValue instanceof Character) {
+                    forbiddenCharacter.add((Character) parameterValue);
+                } else if (parameterValue instanceof Number) {
+                    final Number number = (Number) parameterValue;
+                    if (number.longValue() >= Byte.MIN_VALUE && number.longValue() <= Byte.MAX_VALUE) {
+                        forbiddenNumbers.add(number.byteValue());
+                    }
+                }
+            }
+        }
+
+        if (!duplicateBooleans.isEmpty() || !duplicateNumbers.isEmpty() || !duplicateCharacters.isEmpty()) {
+            throw new DuplicatePrimitiveValuesFromWithAndFromActualParametersException();
         }
     }
 
@@ -212,33 +238,21 @@ public class InvocationExpectationBuilder
     }
 
     public static final class DuplicatePrimitiveValuesFromWithAndFromActualParametersException extends Exception {
-        private final Set<Boolean> duplicateBooleans;
-        private final Set<Byte> duplicateNumbers;
-        private final Set<Character> duplicateCharacters;
-
-        public DuplicatePrimitiveValuesFromWithAndFromActualParametersException(
-                Set<Boolean> duplicateBooleans,
-                Set<Byte> duplicateNumbers,
-                Set<Character> duplicateCharacters) {
-            this.duplicateBooleans = duplicateBooleans;
-            this.duplicateNumbers = duplicateNumbers;
-            this.duplicateCharacters = duplicateCharacters;
-        }
-
-        public Set<Boolean> getDuplicateBooleans() {
-            return duplicateBooleans;
-        }
-
-        public Set<Byte> getDuplicateNumbers() {
-            return duplicateNumbers;
-        }
-
-        public Set<Character> getDuplicateCharacters() {
-            return duplicateCharacters;
-        }
     }
 
     public List<Object> getCapturedParameterMatchersStupValues() {
         return Collections.unmodifiableList(capturedParameterMatchersStupValues);
+    }
+
+    public Set<Boolean> getForbiddenBooleans() {
+        return Collections.unmodifiableSet(forbiddenBooleans);
+    }
+
+    public Set<Character> getForbiddenCharacter() {
+        return Collections.unmodifiableSet(forbiddenCharacter);
+    }
+
+    public Set<Byte> getForbiddenNumbers() {
+        return Collections.unmodifiableSet(forbiddenNumbers);
     }
 }

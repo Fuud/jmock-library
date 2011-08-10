@@ -153,9 +153,9 @@ public class InvocationExpectationBuilderTest {
             mockCaptureControl.capture.createExpectationFrom(new Invocation(object, method, generatedStubValueForMatcher1, true));//duplicate generatedStubValueForMatcher1==true
             fail("DuplicatePrimitiveValuesFromWithAndFromActualParametersException must be thrown");
         }catch (InvocationExpectationBuilder.DuplicatePrimitiveValuesFromWithAndFromActualParametersException e){
-            assertEquals(new HashSet<Boolean>(Arrays.asList(true)), e.getDuplicateBooleans());
-            assertEquals(Collections.<Byte>emptySet(), e.getDuplicateNumbers());
-            assertEquals(Collections.<Character>emptySet(), e.getDuplicateCharacters());
+            assertEquals(new HashSet<Boolean>(Arrays.asList(true)), builder.getForbiddenBooleans());
+            assertEquals(Collections.<Byte>emptySet(), builder.getForbiddenNumbers());
+            assertEquals(Collections.<Character>emptySet(), builder.getForbiddenCharacter());
         }
     }
 
@@ -182,9 +182,43 @@ public class InvocationExpectationBuilderTest {
             mockCaptureControl.capture.createExpectationFrom(new Invocation(object, method, generatedStubValueForMatcher1, 'x'));//duplicate generatedStubValueForMatcher1=='x'
             fail("DuplicatePrimitiveValuesFromWithAndFromActualParametersException must be thrown");
         }catch (InvocationExpectationBuilder.DuplicatePrimitiveValuesFromWithAndFromActualParametersException e){
-            assertEquals(Collections.<Boolean>emptySet(), e.getDuplicateBooleans());
-            assertEquals(Collections.<Byte>emptySet(), e.getDuplicateNumbers());
-            assertEquals(new HashSet(Arrays.asList('x')), e.getDuplicateCharacters());
+            assertEquals(Collections.<Boolean>emptySet(), builder.getForbiddenBooleans());
+            assertEquals(Collections.<Byte>emptySet(), builder.getForbiddenNumbers());
+            assertEquals(new HashSet(Arrays.asList('x')), builder.getForbiddenCharacter());
+        }
+    }
+
+    @Test
+    public void testMixParametersActualValueAndMatchers_ForbiddenNumberShouldAlsoIncludeNonMatchersValues() throws Throwable {
+
+        final MockCaptureControl mockCaptureControl = new MockCaptureControl();
+
+        final Matcher matcher1 = equal(1);
+
+        final Object generatedStubValueForMatcher1 = 1;
+
+        final Matcher matcher2 = equal(3);
+
+        final Object generatedStubValueForMatcher2 = 3;
+
+
+        final InvocationExpectationBuilder builder = new InvocationExpectationBuilder();
+        builder.setCardinality(Cardinality.exactly(1));
+        builder.of(mockCaptureControl);
+        builder.putParameterValueToMatcher(generatedStubValueForMatcher1, matcher1);
+        builder.putParameterValueToMatcher(generatedStubValueForMatcher2, matcher2);
+
+        // imitate method invocation
+        final Object object = "not-used-object";
+        final Method method = TestData.class.getMethod("methodWithManyPrimitiveArgs", int.class, byte.class, char.class, int.class, byte.class, char.class);
+
+        try{
+            mockCaptureControl.capture.createExpectationFrom(new Invocation(object, method, generatedStubValueForMatcher1, generatedStubValueForMatcher2, 'a', 1, (byte)2, 'b'));
+            fail("DuplicatePrimitiveValuesFromWithAndFromActualParametersException must be thrown");
+        }catch (InvocationExpectationBuilder.DuplicatePrimitiveValuesFromWithAndFromActualParametersException e){
+            assertEquals(Collections.<Boolean>emptySet(), builder.getForbiddenBooleans());
+            assertEquals(new HashSet(Arrays.asList((byte)1, (byte)2)), builder.getForbiddenNumbers()); // all values from actual parameters (not from matchers)
+            assertEquals(new HashSet(Arrays.asList('a', 'b')), builder.getForbiddenCharacter());       // all values from actual parameters (not from matchers)
         }
     }
 
@@ -211,9 +245,38 @@ public class InvocationExpectationBuilderTest {
             mockCaptureControl.capture.createExpectationFrom(new Invocation(object, method, generatedStubValueForMatcher1, (byte)2));//duplicate generatedStubValueForMatcher1==2
             fail("DuplicatePrimitiveValuesFromWithAndFromActualParametersException must be thrown");
         }catch (InvocationExpectationBuilder.DuplicatePrimitiveValuesFromWithAndFromActualParametersException e){
-            assertEquals(Collections.<Boolean>emptySet(), e.getDuplicateBooleans());
-            assertEquals(new HashSet(Arrays.asList((byte)2)), e.getDuplicateNumbers());
-            assertEquals(Collections.<Character>emptySet(), e.getDuplicateCharacters());
+            assertEquals(Collections.<Boolean>emptySet(), builder.getForbiddenBooleans());
+            assertEquals(new HashSet(Arrays.asList((byte)2)), builder.getForbiddenNumbers());
+            assertEquals(Collections.<Character>emptySet(), builder.getForbiddenCharacter());
+        }
+    }
+
+    @Test
+    public void testMixParametersActualValueAndMatchers_MixObjectsAndPrimitives() throws Throwable {
+
+        final MockCaptureControl mockCaptureControl = new MockCaptureControl();
+
+        final Matcher matcher1 = equal(2);
+
+        final Object generatedStubValueForMatcher1 = 'c';
+
+
+        final InvocationExpectationBuilder builder = new InvocationExpectationBuilder();
+        builder.setCardinality(Cardinality.exactly(1));
+        builder.of(mockCaptureControl);
+        builder.putParameterValueToMatcher(generatedStubValueForMatcher1, matcher1);
+
+        // imitate method invocation
+        final Object object = "not-used-object";
+        final Method method = TestData.class.getMethod("methodWithMixPrimitivesAndObjects", byte.class, byte.class, Object.class);
+
+        try{
+            mockCaptureControl.capture.createExpectationFrom(new Invocation(object, method, generatedStubValueForMatcher1, 'c', new Object(){}));//duplicate generatedStubValueForMatcher1=='c'
+            fail("DuplicatePrimitiveValuesFromWithAndFromActualParametersException must be thrown");
+        }catch (InvocationExpectationBuilder.DuplicatePrimitiveValuesFromWithAndFromActualParametersException e){
+            assertEquals(Collections.<Boolean>emptySet(), builder.getForbiddenBooleans());
+            assertEquals(Collections.<Byte>emptySet(), builder.getForbiddenNumbers());
+            assertEquals(new HashSet(Arrays.asList('c')), builder.getForbiddenCharacter());
         }
     }
 
@@ -262,5 +325,9 @@ public class InvocationExpectationBuilderTest {
         public void methodWithTwoChars(char arg1, char arg2);
 
         public void methodWithTwoBytes(byte arg1, byte arg2);
+
+        public void methodWithManyPrimitiveArgs(int arg1, byte arg2, char arg3, int arg4, byte arg5, char arg6);
+
+        public void methodWithMixPrimitivesAndObjects(byte arg1, byte arg2, Object arg3);
     }
 }
