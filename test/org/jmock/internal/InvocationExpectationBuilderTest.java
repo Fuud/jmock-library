@@ -252,6 +252,32 @@ public class InvocationExpectationBuilderTest {
     }
 
     @Test
+    public void testForbiddenNumbersShouldIncludeNumbersInByteRange() throws Throwable {
+
+        final MockCaptureControl mockCaptureControl = new MockCaptureControl();
+
+        final InvocationExpectationBuilder builder = new InvocationExpectationBuilder();
+        builder.setCardinality(Cardinality.exactly(1));
+        builder.of(mockCaptureControl);
+
+        final Matcher matcher1 = equal(1);
+        final Object generatedStubValueForMatcher1 = 1;
+
+        builder.putParameterValueToMatcher(generatedStubValueForMatcher1, matcher1); // only mixed invocations has limit on values
+
+        // imitate method invocation
+        final Object object = "not-used-object";
+        final Method method = TestData.class.getMethod("methodWith5Integers", int.class, int.class, int.class, int.class, int.class);
+
+
+        mockCaptureControl.capture.createExpectationFrom(new Invocation(object, method,generatedStubValueForMatcher1, 130, Byte.MIN_VALUE, Byte.MAX_VALUE, 0));
+
+        assertEquals(Collections.<Boolean>emptySet(), builder.getForbiddenBooleans());
+        assertEquals(new HashSet(Arrays.asList(Byte.MIN_VALUE, Byte.MAX_VALUE, (byte)0)), builder.getForbiddenNumbers());
+        assertEquals(Collections.<Character>emptySet(), builder.getForbiddenCharacter());
+    }
+
+    @Test
     public void testMixParametersActualValueAndMatchers_MixObjectsAndPrimitives() throws Throwable {
 
         final MockCaptureControl mockCaptureControl = new MockCaptureControl();
@@ -325,6 +351,8 @@ public class InvocationExpectationBuilderTest {
         public void methodWithTwoChars(char arg1, char arg2);
 
         public void methodWithTwoBytes(byte arg1, byte arg2);
+
+        public void methodWith5Integers(int arg1, int arg2, int arg3, int arg4, int arg5);
 
         public void methodWithManyPrimitiveArgs(int arg1, byte arg2, char arg3, int arg4, byte arg5, char arg6);
 

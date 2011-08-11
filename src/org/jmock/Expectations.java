@@ -1,20 +1,47 @@
 package org.jmock;
 
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matcher;
-import org.hamcrest.core.*;
-import org.jmock.api.Action;
-import org.jmock.internal.*;
-import org.jmock.lib.action.*;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.syntax.*;
-import org.objenesis.ObjenesisHelper;
-
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
+import org.hamcrest.core.IsAnything;
+import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.IsInstanceOf;
+import org.hamcrest.core.IsNot;
+import org.hamcrest.core.IsNull;
+import org.hamcrest.core.IsSame;
+import org.jmock.api.Action;
+import org.jmock.internal.BoxingUtils;
+import org.jmock.internal.Cardinality;
+import org.jmock.internal.ChangeStateSideEffect;
+import org.jmock.internal.ExpectationBuilder;
+import org.jmock.internal.ExpectationCollector;
+import org.jmock.internal.InStateOrderingConstraint;
+import org.jmock.internal.InvocationExpectationBuilder;
+import org.jmock.internal.State;
+import org.jmock.internal.StatePredicate;
+import org.jmock.lib.action.ActionSequence;
+import org.jmock.lib.action.DoAllAction;
+import org.jmock.lib.action.ReturnEnumerationAction;
+import org.jmock.lib.action.ReturnIteratorAction;
+import org.jmock.lib.action.ReturnValueAction;
+import org.jmock.lib.action.ThrowAction;
+import org.jmock.lib.action.VoidAction;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.jmock.syntax.ActionClause;
+import org.jmock.syntax.ArgumentConstraintPhrases;
+import org.jmock.syntax.CardinalityClause;
+import org.jmock.syntax.MethodClause;
+import org.jmock.syntax.ReceiverClause;
+import org.jmock.syntax.WithClause;
+import org.objenesis.ObjenesisHelper;
 
 /**
  * Provides most of the syntax of jMock's "domain-specific language" API.
@@ -26,13 +53,21 @@ import java.util.List;
  */
 public abstract class Expectations implements ExpectationBuilder,
         CardinalityClause, ArgumentConstraintPhrases, ActionClause {
+
     private List<InvocationExpectationBuilder> builders = new ArrayList<InvocationExpectationBuilder>();
+    private int currentPosInBuilders = -1;
     private InvocationExpectationBuilder currentBuilder = null;
     private boolean isBuildNow = false;
 
     private List<Object> objectsFromWith = new ArrayList<Object>();
     private int lastVerifiedPosInObjects = -1;
     private int currentPosIsObjectsFromWith = -1;
+
+    private Queue<Object> stubValuesGeneratedEarlier = new ArrayDeque<Object>();
+
+    private Set<Boolean> forbiddenBooleans = new HashSet<Boolean>();
+    private Set<Character> forbiddenCharacter = new HashSet<Character>();
+    private Set<Byte> forbiddenNumbers = new HashSet<Byte>();
 
     private class IncompatibleClass {
     }
@@ -53,6 +88,9 @@ public abstract class Expectations implements ExpectationBuilder,
                 Object expectedClass = createObjectOfExpectedClass(e);
                 objectsFromWith.set(lastVerifiedPosInObjects, expectedClass);
                 currentPosIsObjectsFromWith = -1;
+            } catch (InvocationExpectationBuilder.DuplicatePrimitiveValuesFromWithAndFromActualParametersException e) {
+
+                currentPosIsObjectsFromWith = -1; // start again
             } catch (Exception e) {
                 if (e instanceof RuntimeException) {
                     throw (RuntimeException) e;
@@ -78,7 +116,9 @@ public abstract class Expectations implements ExpectationBuilder,
             Class<?> clazz = Class.forName(className);
             if (clazz.isArray()) {
                 return Array.newInstance(clazz.getComponentType(), 0);
-            } else if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
+            } if (BoxingUtils.isWrapperType(clazz)){
+                return null;
+            }else if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
                 return ClassImposteriser.INSTANCE.imposterise(new VoidAction(), clazz);
             } else {
                 return ObjenesisHelper.newInstance(clazz);
@@ -89,6 +129,10 @@ public abstract class Expectations implements ExpectationBuilder,
     }
 
     private Object getObjectFromWith() {
+        final Object stubValueGeneratedEarlier = stubValuesGeneratedEarlier.poll();
+        if (stubValueGeneratedEarlier != null) {
+            return stubValueGeneratedEarlier;
+        }
         currentPosIsObjectsFromWith++;
         if (objectsFromWith.size() == currentPosIsObjectsFromWith) {
             objectsFromWith.add(new IncompatibleClass());
@@ -104,57 +148,39 @@ public abstract class Expectations implements ExpectationBuilder,
 
     protected final WithClause with = new WithClause() {
         public boolean booleanIs(Matcher<?> matcher) {
-            checkWeBuildingNow();
-            addParameterMatcher(matcher);
-            return false;
+            return (Boolean) with(matcher);// ClassCastException is expected here
         }
 
         public byte byteIs(Matcher<?> matcher) {
-            checkWeBuildingNow();
-            addParameterMatcher(matcher);
-            return 0;
+            return (Byte) with(matcher); // ClassCastException is expected here
         }
 
         public char charIs(Matcher<?> matcher) {
-            checkWeBuildingNow();
-            addParameterMatcher(matcher);
-            return 0;
+            return (Character) with(matcher);// ClassCastException is expected here
         }
 
         public double doubleIs(Matcher<?> matcher) {
-            checkWeBuildingNow();
-            addParameterMatcher(matcher);
-            return 0;
+            return (Double) with(matcher);// ClassCastException is expected here
         }
 
         public float floatIs(Matcher<?> matcher) {
-            checkWeBuildingNow();
-            addParameterMatcher(matcher);
-            return 0;
+            return (Float) with(matcher);// ClassCastException is expected here
         }
 
         public int intIs(Matcher<?> matcher) {
-            checkWeBuildingNow();
-            addParameterMatcher(matcher);
-            return 0;
+            return (Integer) with(matcher);// ClassCastException is expected here
         }
 
         public long longIs(Matcher<?> matcher) {
-            checkWeBuildingNow();
-            addParameterMatcher(matcher);
-            return 0;
+            return (Long) with(matcher);// ClassCastException is expected here
         }
 
         public short shortIs(Matcher<?> matcher) {
-            checkWeBuildingNow();
-            addParameterMatcher(matcher);
-            return 0;
+            return (Short) with(matcher);// ClassCastException is expected here
         }
 
         public <T> T is(Matcher<?> matcher) {
-            checkWeBuildingNow();
-            addParameterMatcher(matcher);
-            return null;
+            return (T) with(matcher);// ClassCastException may be thrown here
         }
     };
 
@@ -168,7 +194,54 @@ public abstract class Expectations implements ExpectationBuilder,
 
     private void initialiseExpectationCapture(Cardinality cardinality) {
         checkLastExpectationWasFullySpecified();
+        stubValuesGeneratedEarlier.clear();
+        currentPosInBuilders++;
+        if (currentPosInBuilders < builders.size()) {
+            final InvocationExpectationBuilder oldBuilderAtThisPosition = builders.get(currentPosInBuilders);
+            final List<Object> capturedParameterStupValues = new ArrayList<Object>(oldBuilderAtThisPosition.getCapturedParameterMatchersStupValues());
+            final Set<Boolean> forbiddenBooleans = new HashSet<Boolean>(oldBuilderAtThisPosition.getForbiddenBooleans());
+            final Set<Character> forbiddenCharacter = new HashSet<Character>(oldBuilderAtThisPosition.getForbiddenCharacter());
+            final Set<Byte> forbiddenNumbers = new HashSet<Byte>(oldBuilderAtThisPosition.getForbiddenNumbers());
 
+            for (int i = 0; i < capturedParameterStupValues.size(); i++) {
+                Object capturedValue = capturedParameterStupValues.get(i);
+                if (BoxingUtils.isWrapperType(capturedValue.getClass())) {
+                    if (capturedValue instanceof Boolean) {
+                        final boolean booleanValue = (Boolean) capturedValue;
+                        if (forbiddenBooleans.contains(booleanValue)) {
+                            capturedParameterStupValues.set(i, !(Boolean) capturedValue);
+                        }
+                    }
+                    if (capturedValue instanceof Character) {
+                        final char charValue = (Character) capturedValue;
+                        if (forbiddenCharacter.contains(charValue)) {
+                            char newValue = Character.MIN_VALUE;
+                            while (forbiddenCharacter.contains(newValue)) {
+                                newValue++;
+                            }
+                            capturedParameterStupValues.set(i, newValue);
+                            forbiddenCharacter.add(newValue);
+                        }
+                    }
+                    if (capturedValue instanceof Number) {
+                        Number numberValue = (Number) capturedValue;
+                        if (numberValue.longValue() > Byte.MIN_VALUE && numberValue.longValue() < Byte.MAX_VALUE) {
+                            byte byteValue = numberValue.byteValue();
+                            if (forbiddenNumbers.contains(byteValue)) {
+                                byte newValue = Byte.MIN_VALUE;
+                                while (forbiddenNumbers.contains(newValue)) {
+                                    newValue++;
+                                }
+                                capturedParameterStupValues.set(i, newValue);
+                                forbiddenNumbers.add(newValue);
+                            }
+                        }
+
+                    }
+                }
+            }
+            stubValuesGeneratedEarlier.addAll(capturedParameterStupValues);
+        }
         currentBuilder = new InvocationExpectationBuilder();
         currentBuilder.setCardinality(cardinality);
         builders.add(currentBuilder);
