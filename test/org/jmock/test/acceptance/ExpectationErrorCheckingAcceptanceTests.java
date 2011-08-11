@@ -124,18 +124,6 @@ public class ExpectationErrorCheckingAcceptanceTests extends TestCase {
         }
     }
     
-    public void testMustSpecifyConstraintsForAllArguments() {
-        try {
-            context.checking(new Expectations() {protected void expect() throws Exception {
-                exactly(1).of (mock).doSomethingWith("x", with(equal("y")));
-            }});
-            fail("should have thrown IllegalArgumentException");
-        }
-        catch (IllegalArgumentException e) {
-            // expected
-        }
-    }
-    
     public void testCanSpecifyNoExpectationsAtAll() {
         context.assertIsSatisfied();
     }

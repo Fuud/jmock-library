@@ -65,10 +65,6 @@ public abstract class Expectations implements ExpectationBuilder,
 
     private Queue<Object> stubValuesGeneratedEarlier = new ArrayDeque<Object>();
 
-    private Set<Boolean> forbiddenBooleans = new HashSet<Boolean>();
-    private Set<Character> forbiddenCharacter = new HashSet<Character>();
-    private Set<Byte> forbiddenNumbers = new HashSet<Byte>();
-
     private class IncompatibleClass {
     }
 
@@ -116,9 +112,7 @@ public abstract class Expectations implements ExpectationBuilder,
             Class<?> clazz = Class.forName(className);
             if (clazz.isArray()) {
                 return Array.newInstance(clazz.getComponentType(), 0);
-            } if (BoxingUtils.isWrapperType(clazz)){
-                return null;
-            }else if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
+            } else if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
                 return ClassImposteriser.INSTANCE.imposterise(new VoidAction(), clazz);
             } else {
                 return ObjenesisHelper.newInstance(clazz);
@@ -225,14 +219,28 @@ public abstract class Expectations implements ExpectationBuilder,
                     }
                     if (capturedValue instanceof Number) {
                         Number numberValue = (Number) capturedValue;
-                        if (numberValue.longValue() > Byte.MIN_VALUE && numberValue.longValue() < Byte.MAX_VALUE) {
+                        if (numberValue.longValue() >= Byte.MIN_VALUE && numberValue.longValue() <= Byte.MAX_VALUE) {
                             byte byteValue = numberValue.byteValue();
                             if (forbiddenNumbers.contains(byteValue)) {
                                 byte newValue = Byte.MIN_VALUE;
                                 while (forbiddenNumbers.contains(newValue)) {
                                     newValue++;
                                 }
-                                capturedParameterStupValues.set(i, newValue);
+                                if (capturedValue instanceof Byte) {
+                                    capturedParameterStupValues.set(i, byteValue);
+                                } else if (capturedValue instanceof Short) {
+                                    capturedParameterStupValues.set(i, (short) byteValue);
+                                } else if (capturedValue instanceof Integer) {
+                                    capturedParameterStupValues.set(i, (int) byteValue);
+                                } else if (capturedValue instanceof Long) {
+                                    capturedParameterStupValues.set(i, (long) byteValue);
+                                } else if (capturedValue instanceof Float) {
+                                    capturedParameterStupValues.set(i, (float) byteValue);
+                                } else if (capturedValue instanceof Double) {
+                                    capturedParameterStupValues.set(i, (double) byteValue);
+                                } else {
+                                    throw new IllegalStateException("No case for class: " + capturedValue.getClass());
+                                }
                                 forbiddenNumbers.add(newValue);
                             }
                         }
@@ -336,18 +344,17 @@ public abstract class Expectations implements ExpectationBuilder,
         return exactly(0).of(mockObject);
     }
 
-    private void addParameterMatcher(Matcher<?> matcher) {
-        checkWeBuildingNow();
-        //todo currentBuilder().addParameterMatcher(matcher);
-    }
-
     /**
      * Alternatively, use with.<T>is instead, which will work with untyped Hamcrest matchers
      */
     public <T> T with(Matcher<T> matcher) {
         checkWeBuildingNow();
-        addParameterMatcher(matcher);
-        return (T) getObjectFromWith();
+        final T objectFromWith = (T) getObjectFromWith();
+        if (objectFromWith == null) {
+            throw new AssertionError("Internal jmock error: zero was returned from getObjectFromWith");
+        }
+        currentBuilder().putParameterValueToMatcher(objectFromWith, matcher);
+        return objectFromWith;
     }
 
     public <T> T with(T value) {
