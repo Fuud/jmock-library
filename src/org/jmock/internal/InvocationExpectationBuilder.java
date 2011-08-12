@@ -113,7 +113,7 @@ public class InvocationExpectationBuilder
                 if (objectParametersValueToMatchers.containsKey(parameterValue)) {
                     parameterMatchers.add(objectParametersValueToMatchers.get(parameterValue));
                 } else if (primitiveParametersValueToMatchers.containsKey(parameterValue)) {
-
+                    parameterMatchers.add(primitiveParametersValueToMatchers.get(parameterValue));
                 } else {
                     parameterMatchers.add(Matchers.equalTo(parameterValue));
                 }

@@ -25,6 +25,7 @@ import org.jmock.internal.ExpectationBuilder;
 import org.jmock.internal.ExpectationCollector;
 import org.jmock.internal.InStateOrderingConstraint;
 import org.jmock.internal.InvocationExpectationBuilder;
+import org.jmock.internal.ReturnDefaultValueAction;
 import org.jmock.internal.State;
 import org.jmock.internal.StatePredicate;
 import org.jmock.lib.action.ActionSequence;
@@ -113,7 +114,7 @@ public abstract class Expectations implements ExpectationBuilder,
             if (clazz.isArray()) {
                 return Array.newInstance(clazz.getComponentType(), 0);
             } else if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
-                return ClassImposteriser.INSTANCE.imposterise(new VoidAction(), clazz);
+                return ClassImposteriser.INSTANCE.imposterise(new ReturnDefaultValueAction(), clazz); // ReturnDefaultValueAction - bad hashCode - always returns 0
             } else {
                 return ObjenesisHelper.newInstance(clazz);
             }
