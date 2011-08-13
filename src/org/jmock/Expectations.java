@@ -158,13 +158,6 @@ public abstract class Expectations implements ExpectationBuilder,
     };
 
 
-    {
-        isBuildNow = true;
-        build();
-        isBuildNow = false;
-    }
-
-
     private void initialiseExpectationCapture(Cardinality cardinality) {
         checkLastExpectationWasFullySpecified();
         stubValuesGeneratedEarlier.clear();
@@ -249,6 +242,10 @@ public abstract class Expectations implements ExpectationBuilder,
     }
 
     public void buildExpectations(Action defaultAction, ExpectationCollector collector) {
+        isBuildNow = true;
+        build();
+        isBuildNow = false;
+
         checkLastExpectationWasFullySpecified();
 
         for (InvocationExpectationBuilder builder : builders) {
