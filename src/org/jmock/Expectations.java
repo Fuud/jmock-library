@@ -1,48 +1,18 @@
 package org.jmock;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
-import org.hamcrest.core.IsAnything;
-import org.hamcrest.core.IsEqual;
-import org.hamcrest.core.IsInstanceOf;
-import org.hamcrest.core.IsNot;
-import org.hamcrest.core.IsNull;
-import org.hamcrest.core.IsSame;
+import org.hamcrest.core.*;
 import org.jmock.api.Action;
-import org.jmock.internal.BoxingUtils;
-import org.jmock.internal.Cardinality;
-import org.jmock.internal.ChangeStateSideEffect;
-import org.jmock.internal.ExpectationBuilder;
-import org.jmock.internal.ExpectationCollector;
-import org.jmock.internal.InStateOrderingConstraint;
-import org.jmock.internal.InvocationExpectationBuilder;
-import org.jmock.internal.ReturnDefaultValueAction;
-import org.jmock.internal.State;
-import org.jmock.internal.StatePredicate;
-import org.jmock.lib.action.ActionSequence;
-import org.jmock.lib.action.DoAllAction;
-import org.jmock.lib.action.ReturnEnumerationAction;
-import org.jmock.lib.action.ReturnIteratorAction;
-import org.jmock.lib.action.ReturnValueAction;
-import org.jmock.lib.action.ThrowAction;
-import org.jmock.lib.action.VoidAction;
+import org.jmock.internal.*;
+import org.jmock.lib.action.*;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.syntax.ActionClause;
-import org.jmock.syntax.ArgumentConstraintPhrases;
-import org.jmock.syntax.CardinalityClause;
-import org.jmock.syntax.MethodClause;
-import org.jmock.syntax.ReceiverClause;
-import org.jmock.syntax.WithClause;
+import org.jmock.syntax.*;
 import org.objenesis.ObjenesisHelper;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 /**
  * Provides most of the syntax of jMock's "domain-specific language" API.
@@ -75,18 +45,23 @@ public abstract class Expectations implements ExpectationBuilder,
     private void build() {
         while (true) {
             try {
-                builders.clear();
                 currentBuilder = null;
                 expect();
                 return; // all is right
             } catch (ClassCastException e) {
                 System.out.println(e.getMessage());
                 lastVerifiedPosInObjects++;
-                Object expectedClass = createObjectOfExpectedClass(e);
-                objectsFromWith.set(lastVerifiedPosInObjects, expectedClass);
+                Object objectOfExpectedClass = createObjectOfExpectedClass(e);
+                if (lastVerifiedPosInObjects < objectsFromWith.size()) {
+                    objectsFromWith.set(lastVerifiedPosInObjects, objectOfExpectedClass);
+                } else {
+                    objectsFromWith.add(objectOfExpectedClass);
+                }
                 currentPosIsObjectsFromWith = -1;
+                currentPosInBuilders = -1;
             } catch (InvocationExpectationBuilder.DuplicatePrimitiveValuesFromWithAndFromActualParametersException e) {
-
+                currentBuilder().setBuildPhase(InvocationExpectationBuilder.BuildPhase.SEARCH_FOR_VALUES);
+                currentPosInBuilders = -1;
                 currentPosIsObjectsFromWith = -1; // start again
             } catch (Exception e) {
                 if (e instanceof RuntimeException) {
@@ -124,15 +99,17 @@ public abstract class Expectations implements ExpectationBuilder,
     }
 
     private Object getObjectFromWith() {
-        final Object stubValueGeneratedEarlier = stubValuesGeneratedEarlier.poll();
-        if (stubValueGeneratedEarlier != null) {
-            return stubValueGeneratedEarlier;
+        if (currentBuilder().getBuildPhase() == InvocationExpectationBuilder.BuildPhase.SEARCH_FOR_VALUES) {
+            return stubValuesGeneratedEarlier.poll();
+        } else if (currentBuilder().getBuildPhase() == InvocationExpectationBuilder.BuildPhase.SEARCH_FOR_ACCESSIBLE_TYPES) {
+            currentPosIsObjectsFromWith++;
+            if (objectsFromWith.size() == currentPosIsObjectsFromWith) {
+                objectsFromWith.add(new IncompatibleClass());
+            }
+            return objectsFromWith.get(currentPosIsObjectsFromWith);
+        } else {
+            throw new IllegalStateException("Invalid currency state: " + currentBuilder().getBuildPhase());
         }
-        currentPosIsObjectsFromWith++;
-        if (objectsFromWith.size() == currentPosIsObjectsFromWith) {
-            objectsFromWith.add(new IncompatibleClass());
-        }
-        return objectsFromWith.get(currentPosIsObjectsFromWith);
     }
 
     private void checkWeBuildingNow() {
@@ -174,6 +151,7 @@ public abstract class Expectations implements ExpectationBuilder,
             return (Short) with(matcher);// ClassCastException is expected here
         }
 
+        @SuppressWarnings({"unchecked"})
         public <T> T is(Matcher<?> matcher) {
             return (T) with(matcher);// ClassCastException may be thrown here
         }
@@ -228,17 +206,17 @@ public abstract class Expectations implements ExpectationBuilder,
                                     newValue++;
                                 }
                                 if (capturedValue instanceof Byte) {
-                                    capturedParameterStupValues.set(i, byteValue);
+                                    capturedParameterStupValues.set(i, newValue);
                                 } else if (capturedValue instanceof Short) {
-                                    capturedParameterStupValues.set(i, (short) byteValue);
+                                    capturedParameterStupValues.set(i, (short) newValue);
                                 } else if (capturedValue instanceof Integer) {
-                                    capturedParameterStupValues.set(i, (int) byteValue);
+                                    capturedParameterStupValues.set(i, (int) newValue);
                                 } else if (capturedValue instanceof Long) {
-                                    capturedParameterStupValues.set(i, (long) byteValue);
+                                    capturedParameterStupValues.set(i, (long) newValue);
                                 } else if (capturedValue instanceof Float) {
-                                    capturedParameterStupValues.set(i, (float) byteValue);
+                                    capturedParameterStupValues.set(i, (float) newValue);
                                 } else if (capturedValue instanceof Double) {
-                                    capturedParameterStupValues.set(i, (double) byteValue);
+                                    capturedParameterStupValues.set(i, (double) newValue);
                                 } else {
                                     throw new IllegalStateException("No case for class: " + capturedValue.getClass());
                                 }
@@ -251,9 +229,23 @@ public abstract class Expectations implements ExpectationBuilder,
             }
             stubValuesGeneratedEarlier.addAll(capturedParameterStupValues);
         }
+
         currentBuilder = new InvocationExpectationBuilder();
         currentBuilder.setCardinality(cardinality);
-        builders.add(currentBuilder);
+        if (currentPosInBuilders < builders.size()) {
+            if (builders.size() > 0) {
+                currentBuilder.setBuildPhase(builders.get(builders.size() - 1).getBuildPhase());
+            }else{
+                throw new IllegalStateException();
+            }
+            builders.set(currentPosInBuilders, currentBuilder);
+        } else {
+            if (builders.size() > 0) {
+                builders.get(builders.size() - 1).setBuildPhase(InvocationExpectationBuilder.BuildPhase.BUILD_FINISHED); // passed
+            }
+            currentBuilder.setBuildPhase(InvocationExpectationBuilder.BuildPhase.SEARCH_FOR_ACCESSIBLE_TYPES);
+            builders.add(currentBuilder);
+        }
     }
 
     public void buildExpectations(Action defaultAction, ExpectationCollector collector) {
@@ -348,6 +340,7 @@ public abstract class Expectations implements ExpectationBuilder,
     /**
      * Alternatively, use with.<T>is instead, which will work with untyped Hamcrest matchers
      */
+    @SuppressWarnings({"unchecked"})
     public <T> T with(Matcher<T> matcher) {
         checkWeBuildingNow();
         final T objectFromWith = (T) getObjectFromWith();

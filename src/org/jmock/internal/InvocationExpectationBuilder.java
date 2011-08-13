@@ -1,15 +1,5 @@
 package org.jmock.internal;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.jmock.Sequence;
@@ -22,6 +12,9 @@ import org.jmock.internal.matcher.MockObjectMatcher;
 import org.jmock.syntax.MethodClause;
 import org.jmock.syntax.ParametersClause;
 import org.jmock.syntax.ReceiverClause;
+
+import java.lang.reflect.Method;
+import java.util.*;
 
 public class InvocationExpectationBuilder
         implements ExpectationCapture,
@@ -38,6 +31,8 @@ public class InvocationExpectationBuilder
     private Set<Boolean> forbiddenBooleans = new HashSet<Boolean>();
     private Set<Character> forbiddenCharacter = new HashSet<Character>();
     private Set<Byte> forbiddenNumbers = new HashSet<Byte>();
+
+    private BuildPhase buildPhase;
 
     public Expectation toExpectation(Action defaultAction) {
         if (needsDefaultAction) {
@@ -231,15 +226,6 @@ public class InvocationExpectationBuilder
         with();
     }
 
-    public static final class TooManyBooleansInMixParametersException extends Exception {
-        public TooManyBooleansInMixParametersException() {
-            super("If you mix boolean matchers and boolean actual values, there should not be more that 2 boolean argument");
-        }
-    }
-
-    public static final class DuplicatePrimitiveValuesFromWithAndFromActualParametersException extends Exception {
-    }
-
     public List<Object> getCapturedParameterMatchersStupValues() {
         return Collections.unmodifiableList(capturedParameterMatchersStupValues);
     }
@@ -254,5 +240,28 @@ public class InvocationExpectationBuilder
 
     public Set<Byte> getForbiddenNumbers() {
         return Collections.unmodifiableSet(forbiddenNumbers);
+    }
+
+    public BuildPhase getBuildPhase() {
+        return buildPhase;
+    }
+
+    public void setBuildPhase(BuildPhase buildPhase) {
+        this.buildPhase = buildPhase;
+    }
+
+    public static final class TooManyBooleansInMixParametersException extends RuntimeException {
+        public TooManyBooleansInMixParametersException() {
+            super("If you mix boolean matchers and boolean actual values, there should not be more that 2 boolean argument");
+        }
+    }
+
+    public static final class DuplicatePrimitiveValuesFromWithAndFromActualParametersException extends RuntimeException {
+    }
+
+    public enum BuildPhase{
+        SEARCH_FOR_ACCESSIBLE_TYPES,
+        SEARCH_FOR_VALUES,
+        BUILD_FINISHED
     }
 }
