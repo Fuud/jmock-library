@@ -54,6 +54,7 @@ public class Mockery implements SelfDescribing {
     
     private InvocationDispatcher dispatcher = new InvocationDispatcher();
     private Error firstError = null;
+    private final Object synchronizeWait = new Object();
     
     private List<Invocation> actualInvocations = new ArrayList<Invocation>();
     
@@ -219,6 +220,24 @@ public class Mockery implements SelfDescribing {
                 new ExpectationError("not all expectations were satisfied", this));
         }
 	}
+
+    public void waitForSatisfaction(){
+        synchronized (synchronizeWait) {
+            do {
+                if (firstError != null) {
+                    throw firstError;
+                }
+                if (dispatcher.isSatisfied()){
+                    return;
+                }
+                try {
+                    synchronizeWait.wait();
+                } catch (InterruptedException e) {
+                    assertIsSatisfied();
+                }
+            } while (!dispatcher.isSatisfied());
+        }
+    }
     
     public void describeTo(Description description) {
         description.appendDescriptionOf(dispatcher);
@@ -242,23 +261,25 @@ public class Mockery implements SelfDescribing {
     }
 
     private Object dispatch(Invocation invocation) throws Throwable {
-        if (firstError != null) {
-            throw firstError;
-        }
-        
-        try {
-            Object result = dispatcher.dispatch(invocation);
-            actualInvocations.add(invocation);
-            return result;
-        }
-        catch (ExpectationError e) {
-            firstError = expectationErrorTranslator.translate(mismatchDescribing(e));
-            firstError.setStackTrace(e.getStackTrace());
-            throw firstError;
-        }
-        catch (Throwable t) {
-            actualInvocations.add(invocation);
-            throw t;
+        synchronized (synchronizeWait) {
+            if (firstError != null) {
+                throw firstError;
+            }
+
+            try {
+                Object result = dispatcher.dispatch(invocation);
+                actualInvocations.add(invocation);
+                return result;
+            } catch (ExpectationError e) {
+                firstError = expectationErrorTranslator.translate(mismatchDescribing(e));
+                firstError.setStackTrace(e.getStackTrace());
+                throw firstError;
+            } catch (Throwable t) {
+                actualInvocations.add(invocation);
+                throw t;
+            } finally {
+                synchronizeWait.notifyAll();
+            }
         }
     }
     
