@@ -21,17 +21,40 @@ public class DoAllAcceptanceTests extends TestCase {
     
     public void testCanSpecifyMultipleStubsForOneInvocation() {
         final ArrayList<String> list = new ArrayList<String>();
-        
-        context.checking(new Expectations() {protected void expect() throws Exception {
-            exactly(1).of (collector).addThingsTo(with(same(list)));
-            	will(doAll(addElement("1"), 
-                           addElement("2"), 
-                           addElement("3"), 
-                           addElement("4")));
-        }});
+
+        context.checking(new Expectations() {
+            protected void expect() throws Exception {
+                exactly(1).of(collector).addThingsTo(with(same(list)));
+                will(doAll(addElement("1"),
+                        addElement("2"),
+                        addElement("3"),
+                        addElement("4")));
+            }
+        });
         
         collector.addThingsTo(list);
         
+        assertEquals("list length", 4, list.size());
+        for (int i = 0; i < list.size(); i++) {
+            assertEquals("element "+(i+1), Integer.toString(i+1), list.get(i));
+        }
+    }
+
+    public void testCanSpecifyMultipleStubsForOneInvocation_Without_Doall() {
+        final ArrayList<String> list = new ArrayList<String>();
+
+        context.checking(new Expectations() {
+            protected void expect() throws Exception {
+                exactly(1).of(collector).addThingsTo(with(same(list)));
+                will(addElement("1"),
+                        addElement("2"),
+                        addElement("3"),
+                        addElement("4"));
+            }
+        });
+
+        collector.addThingsTo(list);
+
         assertEquals("list length", 4, list.size());
         for (int i = 0; i < list.size(); i++) {
             assertEquals("element "+(i+1), Integer.toString(i+1), list.get(i));
