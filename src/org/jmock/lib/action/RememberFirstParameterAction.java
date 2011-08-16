@@ -17,6 +17,6 @@ public class RememberFirstParameterAction<T> implements Action {
     }
 
     public T get(){
-        return rpa.get(0);
+        return rpa.<T>get(0);
     }
 }
