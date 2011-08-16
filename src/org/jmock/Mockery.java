@@ -238,6 +238,17 @@ public class Mockery implements SelfDescribing {
             } while (!dispatcher.isSatisfied());
         }
     }
+
+    public void reset(){
+        dispatcher.clear();
+        actualInvocations.clear();
+        firstError = null;
+    }
+
+    public void assertIsSatisfiedAndReset(){
+        assertIsSatisfied();
+        reset();
+    }
     
     public void describeTo(Description description) {
         description.appendDescriptionOf(dispatcher);
