@@ -23,6 +23,11 @@ public class InvocationDispatcher implements ExpectationCollector, SelfDescribin
 	public void add(Expectation expectation) {
 		expectations.add(expectation);
 	}
+
+    public void clear(){
+        expectations.clear();
+        stateMachines.clear();
+    }
 	
     public void describeTo(Description description) {
         describe(description, expectations);

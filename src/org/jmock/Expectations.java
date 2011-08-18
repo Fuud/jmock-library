@@ -228,7 +228,7 @@ public abstract class Expectations implements ExpectationBuilder,
         if (currentPosInBuilders < builders.size()) {
             if (builders.size() > 0) {
                 currentBuilder.setBuildPhase(builders.get(builders.size() - 1).getBuildPhase());
-            }else{
+            } else {
                 throw new IllegalStateException();
             }
             builders.set(currentPosInBuilders, currentBuilder);
@@ -353,9 +353,14 @@ public abstract class Expectations implements ExpectationBuilder,
         return with(equal(value));
     }
 
-    public void will(Action action) {
+    public void will(Action... actions) {
         checkWeBuildingNow();
-        currentBuilder().setAction(action);
+        if (actions.length == 1) {
+            currentBuilder().setAction(actions[0]);
+        } else {
+            currentBuilder().setAction(doAll(actions));
+        }
+
     }
 
     /* Common constraints
