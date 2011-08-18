@@ -4,5 +4,5 @@ import org.jmock.api.Invocation;
 
 
 public interface ExpectationCapture {
-    void createExpectationFrom(Invocation invocation);
+    void createExpectationFrom(Invocation invocation) throws InvocationExpectationBuilder.TooManyBooleansInMixParametersException, InvocationExpectationBuilder.DuplicatePrimitiveValuesFromWithAndFromActualParametersException;
 }

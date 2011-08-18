@@ -1,39 +1,18 @@
 package org.jmock;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
-import org.hamcrest.core.IsAnything;
-import org.hamcrest.core.IsEqual;
-import org.hamcrest.core.IsInstanceOf;
-import org.hamcrest.core.IsNot;
-import org.hamcrest.core.IsNull;
-import org.hamcrest.core.IsSame;
+import org.hamcrest.core.*;
 import org.jmock.api.Action;
-import org.jmock.internal.BoxingUtils;
-import org.jmock.internal.Cardinality;
-import org.jmock.internal.ChangeStateSideEffect;
-import org.jmock.internal.ExpectationBuilder;
-import org.jmock.internal.ExpectationCollector;
-import org.jmock.internal.InStateOrderingConstraint;
-import org.jmock.internal.InvocationExpectationBuilder;
-import org.jmock.internal.State;
-import org.jmock.internal.StatePredicate;
-import org.jmock.lib.action.ActionSequence;
-import org.jmock.lib.action.DoAllAction;
-import org.jmock.lib.action.ReturnEnumerationAction;
-import org.jmock.lib.action.ReturnIteratorAction;
-import org.jmock.lib.action.ReturnValueAction;
-import org.jmock.lib.action.ThrowAction;
-import org.jmock.syntax.ActionClause;
-import org.jmock.syntax.ArgumentConstraintPhrases;
-import org.jmock.syntax.CardinalityClause;
-import org.jmock.syntax.MethodClause;
-import org.jmock.syntax.ReceiverClause;
-import org.jmock.syntax.WithClause;
+import org.jmock.internal.*;
+import org.jmock.lib.action.*;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.jmock.syntax.*;
+import org.objenesis.ObjenesisHelper;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 /**
  * Provides most of the syntax of jMock's "domain-specific language" API.
@@ -45,13 +24,17 @@ import org.jmock.syntax.WithClause;
  */
 public abstract class Expectations implements ExpectationBuilder,
         CardinalityClause, ArgumentConstraintPhrases, ActionClause {
+
     private List<InvocationExpectationBuilder> builders = new ArrayList<InvocationExpectationBuilder>();
+    private int currentPosInBuilders = -1;
     private InvocationExpectationBuilder currentBuilder = null;
     private boolean isBuildNow = false;
 
     private List<Object> objectsFromWith = new ArrayList<Object>();
     private int lastVerifiedPosInObjects = -1;
     private int currentPosIsObjectsFromWith = -1;
+
+    private Queue<Object> stubValuesGeneratedEarlier = new ArrayDeque<Object>();
 
     private class IncompatibleClass {
     }
@@ -62,15 +45,24 @@ public abstract class Expectations implements ExpectationBuilder,
     private void build() {
         while (true) {
             try {
-                builders.clear();
                 currentBuilder = null;
                 expect();
                 return; // all is right
             } catch (ClassCastException e) {
+                System.out.println(e.getMessage());
                 lastVerifiedPosInObjects++;
-                Object expectedClass = createExpectedArrayOrBoxingPrimitiveOrReturnNull(e);
-                objectsFromWith.set(lastVerifiedPosInObjects, expectedClass);
+                Object objectOfExpectedClass = createObjectOfExpectedClass(e);
+                if (lastVerifiedPosInObjects < objectsFromWith.size()) {
+                    objectsFromWith.set(lastVerifiedPosInObjects, objectOfExpectedClass);
+                } else {
+                    objectsFromWith.add(objectOfExpectedClass);
+                }
                 currentPosIsObjectsFromWith = -1;
+                currentPosInBuilders = -1;
+            } catch (InvocationExpectationBuilder.DuplicatePrimitiveValuesFromWithAndFromActualParametersException e) {
+                currentBuilder().setBuildPhase(InvocationExpectationBuilder.BuildPhase.SEARCH_FOR_VALUES);
+                currentPosInBuilders = -1;
+                currentPosIsObjectsFromWith = -1; // start again
             } catch (Exception e) {
                 if (e instanceof RuntimeException) {
                     throw (RuntimeException) e;
@@ -81,11 +73,11 @@ public abstract class Expectations implements ExpectationBuilder,
         }
     }
 
-    private Object createExpectedArrayOrBoxingPrimitiveOrReturnNull(ClassCastException e) {
+    private Object createObjectOfExpectedClass(ClassCastException e) {
         /*
         should be processed correctly:
         1) Objects
-        2) Primitives
+        2) -- Primitives - need special case (we can not compare boxing-unboxing primitives by identity)
         3) Arrays
         */
         final String message = e.getMessage();
@@ -96,35 +88,10 @@ public abstract class Expectations implements ExpectationBuilder,
             Class<?> clazz = Class.forName(className);
             if (clazz.isArray()) {
                 return Array.newInstance(clazz.getComponentType(), 0);
-            } else if (BoxingUtils.isWrapperType(clazz)) {
-                if (clazz.equals(Boolean.class) || clazz.equals(boolean.class)) {
-                    return false;
-                }
-                if (clazz.equals(Byte.class) || clazz.equals(byte.class)) {
-                    return (byte) 0;
-                }
-                if (clazz.equals(Character.class) || clazz.equals(char.class)) {
-                    return (char) 0;
-                }
-                if (clazz.equals(Short.class) || clazz.equals(short.class)) {
-                    return (short) 0;
-                }
-                if (clazz.equals(Integer.class) || clazz.equals(int.class)) {
-                    return 0;
-                }
-                if (clazz.equals(Long.class) || clazz.equals(long.class)) {
-                    return 0L;
-                }
-                if (clazz.equals(Float.class) || clazz.equals(float.class)) {
-                    return 0.0f;
-                }
-                if (clazz.equals(Double.class) || clazz.equals(double.class)) {
-                    return 0.0d;
-                }
-
-                throw new IllegalStateException("Unknown wrapper type: "+clazz);
+            } else if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())) {
+                return ClassImposteriser.INSTANCE.imposterise(new ReturnDefaultValueAction(), clazz); // ReturnDefaultValueAction - bad hashCode - always returns 0
             } else {
-                return null;
+                return ObjenesisHelper.newInstance(clazz);
             }
         } catch (ClassNotFoundException e1) {
             throw new RuntimeException(e1);
@@ -132,11 +99,17 @@ public abstract class Expectations implements ExpectationBuilder,
     }
 
     private Object getObjectFromWith() {
-        currentPosIsObjectsFromWith++;
-        if (objectsFromWith.size() == currentPosIsObjectsFromWith) {
-            objectsFromWith.add(new IncompatibleClass());
+        if (currentBuilder().getBuildPhase() == InvocationExpectationBuilder.BuildPhase.SEARCH_FOR_VALUES) {
+            return stubValuesGeneratedEarlier.poll();
+        } else if (currentBuilder().getBuildPhase() == InvocationExpectationBuilder.BuildPhase.SEARCH_FOR_ACCESSIBLE_TYPES) {
+            currentPosIsObjectsFromWith++;
+            if (objectsFromWith.size() == currentPosIsObjectsFromWith) {
+                objectsFromWith.add(new IncompatibleClass());
+            }
+            return objectsFromWith.get(currentPosIsObjectsFromWith);
+        } else {
+            throw new IllegalStateException("Invalid currency state: " + currentBuilder().getBuildPhase());
         }
-        return objectsFromWith.get(currentPosIsObjectsFromWith);
     }
 
     private void checkWeBuildingNow() {
@@ -178,28 +151,101 @@ public abstract class Expectations implements ExpectationBuilder,
             return (Short) with(matcher);// ClassCastException is expected here
         }
 
+        @SuppressWarnings({"unchecked"})
         public <T> T is(Matcher<?> matcher) {
             return (T) with(matcher);// ClassCastException may be thrown here
         }
     };
 
 
-    {
-        isBuildNow = true;
-        build();
-        isBuildNow = false;
-    }
-
-
     private void initialiseExpectationCapture(Cardinality cardinality) {
         checkLastExpectationWasFullySpecified();
+        stubValuesGeneratedEarlier.clear();
+        currentPosInBuilders++;
+        if (currentPosInBuilders < builders.size()) {
+            final InvocationExpectationBuilder oldBuilderAtThisPosition = builders.get(currentPosInBuilders);
+            final List<Object> capturedParameterStupValues = new ArrayList<Object>(oldBuilderAtThisPosition.getCapturedParameterMatchersStupValues());
+            final Set<Boolean> forbiddenBooleans = new HashSet<Boolean>(oldBuilderAtThisPosition.getForbiddenBooleans());
+            final Set<Character> forbiddenCharacter = new HashSet<Character>(oldBuilderAtThisPosition.getForbiddenCharacter());
+            final Set<Byte> forbiddenNumbers = new HashSet<Byte>(oldBuilderAtThisPosition.getForbiddenNumbers());
+
+            for (int i = 0; i < capturedParameterStupValues.size(); i++) {
+                Object capturedValue = capturedParameterStupValues.get(i);
+                if (BoxingUtils.isWrapperType(capturedValue.getClass())) {
+                    if (capturedValue instanceof Boolean) {
+                        final boolean booleanValue = (Boolean) capturedValue;
+                        if (forbiddenBooleans.contains(booleanValue)) {
+                            capturedParameterStupValues.set(i, !(Boolean) capturedValue);
+                        }
+                    }
+                    if (capturedValue instanceof Character) {
+                        final char charValue = (Character) capturedValue;
+                        if (forbiddenCharacter.contains(charValue)) {
+                            char newValue = Character.MIN_VALUE;
+                            while (forbiddenCharacter.contains(newValue)) {
+                                newValue++;
+                            }
+                            capturedParameterStupValues.set(i, newValue);
+                            forbiddenCharacter.add(newValue);
+                        }
+                    }
+                    if (capturedValue instanceof Number) {
+                        Number numberValue = (Number) capturedValue;
+                        if (numberValue.longValue() >= Byte.MIN_VALUE && numberValue.longValue() <= Byte.MAX_VALUE) {
+                            byte byteValue = numberValue.byteValue();
+                            if (forbiddenNumbers.contains(byteValue)) {
+                                byte newValue = Byte.MIN_VALUE;
+                                while (forbiddenNumbers.contains(newValue)) {
+                                    newValue++;
+                                }
+                                if (capturedValue instanceof Byte) {
+                                    capturedParameterStupValues.set(i, newValue);
+                                } else if (capturedValue instanceof Short) {
+                                    capturedParameterStupValues.set(i, (short) newValue);
+                                } else if (capturedValue instanceof Integer) {
+                                    capturedParameterStupValues.set(i, (int) newValue);
+                                } else if (capturedValue instanceof Long) {
+                                    capturedParameterStupValues.set(i, (long) newValue);
+                                } else if (capturedValue instanceof Float) {
+                                    capturedParameterStupValues.set(i, (float) newValue);
+                                } else if (capturedValue instanceof Double) {
+                                    capturedParameterStupValues.set(i, (double) newValue);
+                                } else {
+                                    throw new IllegalStateException("No case for class: " + capturedValue.getClass());
+                                }
+                                forbiddenNumbers.add(newValue);
+                            }
+                        }
+
+                    }
+                }
+            }
+            stubValuesGeneratedEarlier.addAll(capturedParameterStupValues);
+        }
 
         currentBuilder = new InvocationExpectationBuilder();
         currentBuilder.setCardinality(cardinality);
-        builders.add(currentBuilder);
+        if (currentPosInBuilders < builders.size()) {
+            if (builders.size() > 0) {
+                currentBuilder.setBuildPhase(builders.get(builders.size() - 1).getBuildPhase());
+            }else{
+                throw new IllegalStateException();
+            }
+            builders.set(currentPosInBuilders, currentBuilder);
+        } else {
+            if (builders.size() > 0) {
+                builders.get(builders.size() - 1).setBuildPhase(InvocationExpectationBuilder.BuildPhase.BUILD_FINISHED); // passed
+            }
+            currentBuilder.setBuildPhase(InvocationExpectationBuilder.BuildPhase.SEARCH_FOR_ACCESSIBLE_TYPES);
+            builders.add(currentBuilder);
+        }
     }
 
     public void buildExpectations(Action defaultAction, ExpectationCollector collector) {
+        isBuildNow = true;
+        build();
+        isBuildNow = false;
+
         checkLastExpectationWasFullySpecified();
 
         for (InvocationExpectationBuilder builder : builders) {
@@ -288,18 +334,18 @@ public abstract class Expectations implements ExpectationBuilder,
         return exactly(0).of(mockObject);
     }
 
-    private void addParameterMatcher(Matcher<?> matcher) {
-        checkWeBuildingNow();
-        currentBuilder().addParameterMatcher(matcher);
-    }
-
     /**
      * Alternatively, use with.<T>is instead, which will work with untyped Hamcrest matchers
      */
+    @SuppressWarnings({"unchecked"})
     public <T> T with(Matcher<T> matcher) {
         checkWeBuildingNow();
-        addParameterMatcher(matcher);
-        return (T) getObjectFromWith();
+        final T objectFromWith = (T) getObjectFromWith();
+        if (objectFromWith == null) {
+            throw new AssertionError("Internal jmock error: zero was returned from getObjectFromWith");
+        }
+        currentBuilder().putParameterValueToMatcher(objectFromWith, matcher);
+        return objectFromWith;
     }
 
     public <T> T with(T value) {
