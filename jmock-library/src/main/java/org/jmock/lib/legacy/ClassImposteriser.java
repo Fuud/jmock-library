@@ -3,6 +3,8 @@ package org.jmock.lib.legacy;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import net.sf.cglib.core.CodeGenerationException;
@@ -19,7 +21,9 @@ import net.sf.cglib.proxy.NoOp;
 import org.jmock.api.Imposteriser;
 import org.jmock.api.Invocation;
 import org.jmock.api.Invokable;
+import org.jmock.internal.CombineClassLoader;
 import org.jmock.internal.SearchingClassLoader;
+import org.jmock.lib.AbstractImposteriser;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
@@ -29,7 +33,7 @@ import org.objenesis.ObjenesisStd;
  *   
  * @author npryce
  */
-public class ClassImposteriser implements Imposteriser {
+public class ClassImposteriser  extends AbstractImposteriser {
     public static final Imposteriser INSTANCE = new ClassImposteriser();
     
     private ClassImposteriser() {}
@@ -47,7 +51,7 @@ public class ClassImposteriser implements Imposteriser {
         }
     };
     
-    private final Objenesis objenesis = new ObjenesisStd();
+    private final Objenesis objenesis = new ObjenesisStd(false);
     
     public boolean canImposterise(Class<?> type) {
         return !type.isPrimitive() && 
@@ -101,7 +105,10 @@ public class ClassImposteriser implements Imposteriser {
                 // Don't filter
             }
         };
-        enhancer.setClassLoader(SearchingClassLoader.combineLoadersOf(mockedType, ancilliaryTypes));
+        List<Class<?>> classes = new ArrayList<Class<?>>();
+        classes.add(mockedType);
+        classes.addAll(Arrays.asList(ancilliaryTypes));
+        enhancer.setClassLoader(findCommonClassLoader(mockedType, ancilliaryTypes));
         enhancer.setUseFactory(true);
         if (mockedType.isInterface()) {
             enhancer.setSuperclass(Object.class);
@@ -139,13 +146,6 @@ public class ClassImposteriser implements Imposteriser {
             NoOp.INSTANCE
         });
         return proxy;
-    }
-    
-    private Class<?>[] prepend(Class<?> first, Class<?>... rest) {
-        Class<?>[] all = new Class<?>[rest.length+1];
-        all[0] = first;
-        System.arraycopy(rest, 0, all, 1, rest.length);
-        return all;
     }
     
     public static class ClassWithSuperclassToWorkAroundCglibBug {}
