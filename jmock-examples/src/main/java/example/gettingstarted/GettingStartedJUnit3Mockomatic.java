@@ -1,6 +1,6 @@
 package example.gettingstarted;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.auto.Mock;
 import org.jmock.integration.junit3.MockObjectTestCase;
 
@@ -15,7 +15,7 @@ public class GettingStartedJUnit3Mockomatic extends MockObjectTestCase {
         final String message = "message";
 
         // expectations
-        checking(new Expectations() {protected void expect() throws Exception{
+        checking(new ExpectationsExt() {protected void expect() throws Exception{
             oneOf(subscriber).receive(message);
         }});
 

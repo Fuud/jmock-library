@@ -2,7 +2,7 @@ package org.jmock.test.acceptance;
 
 import junit.framework.TestCase;
 import org.hamcrest.StringDescription;
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.api.Action;
 import org.jmock.api.ExpectationError;
@@ -22,7 +22,7 @@ public class ErrorMessagesAcceptanceTests extends TestCase {
     MockedType mock = context.mock(MockedType.class, "mock");
     
     public void testShowsExpectedAndCurrentNumberOfCallsInErrorMessage() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             exactly(1).of (mock).method1();
             exactly(1).of (mock).method2();
             atLeast(1).of (mock).method3();
@@ -52,7 +52,7 @@ public class ErrorMessagesAcceptanceTests extends TestCase {
 
     // See issue JMOCK-132
     public void testErrorMessageIncludesNotInvokedInsteadOfInvokedExactly0Times() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             exactly(1).of (mock).method1();
         }});
         
@@ -69,7 +69,7 @@ public class ErrorMessagesAcceptanceTests extends TestCase {
     
     // See issue JMOCK-153
     public void testErrorMessageIncludesOnceInsteadOfExactly1Time() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             exactly(1).of (mock).method1();
         }});
         
@@ -87,7 +87,7 @@ public class ErrorMessagesAcceptanceTests extends TestCase {
     // See issue JMOCK-190
     public void testCannotExpectToString() {
         try {
-            context.checking(new Expectations() {protected void expect() throws Exception {
+            context.checking(new ExpectationsExt() {protected void expect() throws Exception {
                 allowing(mock).toString();
             }});
             fail("should have thrown IllegalArgumentException");
@@ -98,7 +98,7 @@ public class ErrorMessagesAcceptanceTests extends TestCase {
     // See issue JMOCK-190
     public void testCannotExpectEquals() {
         try {
-            context.checking(new Expectations() {protected void expect() throws Exception {
+            context.checking(new ExpectationsExt() {protected void expect() throws Exception {
                 allowing(mock).equals("any object");
             }});
             fail("should have thrown IllegalArgumentException");
@@ -109,7 +109,7 @@ public class ErrorMessagesAcceptanceTests extends TestCase {
     // See issue JMOCK-190
     public void testCannotExpectHashCode() {
         try {
-            context.checking(new Expectations() {protected void expect() throws Exception {
+            context.checking(new ExpectationsExt() {protected void expect() throws Exception {
                 allowing(mock).hashCode();
             }});
             fail("should have thrown IllegalArgumentException");
@@ -126,7 +126,7 @@ public class ErrorMessagesAcceptanceTests extends TestCase {
         final TypeThatMakesFinalizePublic mockWithFinalize = context.mock(TypeThatMakesFinalizePublic.class, "mockWithFinalize");
         
         try {
-            context.checking(new Expectations() {protected void expect() throws Exception {
+            context.checking(new ExpectationsExt() {protected void expect() throws Exception {
                 allowing(mockWithFinalize).finalize();
             }});
             fail("should have thrown IllegalArgumentException");
@@ -136,7 +136,7 @@ public class ErrorMessagesAcceptanceTests extends TestCase {
     
     // See issue JMOCK-167
     public void testDoesNotDescribeReturnValueForMethodsThatAreKnownToBeVoid() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             oneOf (mock).doSomething();
         }});
         
@@ -145,7 +145,7 @@ public class ErrorMessagesAcceptanceTests extends TestCase {
     }
 
     public void testMismatchDescription() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             oneOf (mock).doSomethingWith("foo");
             oneOf (mock).doSomethingWith("x", "y"); will(doSomethingDescribedAs("ACTION"));
         }});

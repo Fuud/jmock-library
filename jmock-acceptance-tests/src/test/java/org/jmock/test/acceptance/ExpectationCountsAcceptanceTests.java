@@ -2,7 +2,7 @@ package org.jmock.test.acceptance;
 
 import junit.framework.TestCase;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.api.ExpectationError;
 import testdata.MockedType;
@@ -13,7 +13,7 @@ public class ExpectationCountsAcceptanceTests extends TestCase {
     MockedType mock = context.mock(MockedType.class, "mock");
     
     public void testOne() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             oneOf (mock).doSomething();
         }});
         
@@ -24,7 +24,7 @@ public class ExpectationCountsAcceptanceTests extends TestCase {
     }
     
     public void testExpectsExactly() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             exactly(2).of (mock).doSomething();
         }});
         
@@ -37,7 +37,7 @@ public class ExpectationCountsAcceptanceTests extends TestCase {
     }
     
     public void testExpectsAtLeast() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             atLeast(2).of (mock).doSomething();
         }});
         
@@ -54,7 +54,7 @@ public class ExpectationCountsAcceptanceTests extends TestCase {
     }
     
     public void testExpectsAtMost() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             atMost(2).of (mock).doSomething();
         }});
         
@@ -66,7 +66,7 @@ public class ExpectationCountsAcceptanceTests extends TestCase {
     }
     
     public void testExpectsBetween() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             between(2,3).of (mock).doSomething();
         }});
         
@@ -82,7 +82,7 @@ public class ExpectationCountsAcceptanceTests extends TestCase {
     }
     
     public void testAllows() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             allowing (mock).doSomething();
         }});
         
@@ -93,7 +93,7 @@ public class ExpectationCountsAcceptanceTests extends TestCase {
     }
     
     public void testNever() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             never (mock).doSomething();
         }});
         

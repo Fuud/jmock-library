@@ -1,6 +1,6 @@
 package example.gettingstarted;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -22,7 +22,7 @@ public class GettingStartedJUnit4 {
         final String message = "message";
 
         // expectations
-        context.checking(new Expectations() {protected void expect() throws Exception{
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception{
             oneOf(subscriber).receive(message);
         }});
 

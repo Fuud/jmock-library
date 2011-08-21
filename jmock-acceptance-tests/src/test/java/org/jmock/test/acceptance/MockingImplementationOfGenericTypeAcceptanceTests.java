@@ -2,7 +2,7 @@ package org.jmock.test.acceptance;
 
 import junit.framework.TestCase;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -16,7 +16,7 @@ public class MockingImplementationOfGenericTypeAcceptanceTests extends TestCase 
     public void testWhenDefinedAndInvokedThroughClass() throws Exception {
         final AnImplementation mock = context.mock(AnImplementation.class);
 
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             oneOf (mock).doSomethingWith("a");
         }});
             
@@ -26,7 +26,7 @@ public class MockingImplementationOfGenericTypeAcceptanceTests extends TestCase 
     public void testWhenDefinedThroughClassAndInvokedThroughMethod() throws Exception {
         final AnImplementation mock = context.mock(AnImplementation.class);
 
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             oneOf (mock).doSomethingWith("a");
         }});
         
@@ -39,7 +39,7 @@ public class MockingImplementationOfGenericTypeAcceptanceTests extends TestCase 
     public void testWhenDefinedAndInvokedThroughInterface() throws Exception {
         final AnInterface<String> mock = context.mock(AnImplementation.class);
 
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             oneOf (mock).doSomethingWith("a");
         }});
 

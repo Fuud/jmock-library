@@ -2,7 +2,7 @@ package org.jmock.test.acceptance;
 
 import junit.framework.TestCase;
 import org.hamcrest.Description;
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
@@ -22,7 +22,7 @@ public class DoAllAcceptanceTests extends TestCase {
     public void testCanSpecifyMultipleStubsForOneInvocation() {
         final ArrayList<String> list = new ArrayList<String>();
 
-        context.checking(new Expectations() {
+        context.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 exactly(1).of(collector).addThingsTo(with(same(list)));
                 will(doAll(addElement("1"),
@@ -43,7 +43,7 @@ public class DoAllAcceptanceTests extends TestCase {
     public void testCanSpecifyMultipleStubsForOneInvocation_Without_Doall() {
         final ArrayList<String> list = new ArrayList<String>();
 
-        context.checking(new Expectations() {
+        context.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 exactly(1).of(collector).addThingsTo(with(same(list)));
                 will(addElement("1"),

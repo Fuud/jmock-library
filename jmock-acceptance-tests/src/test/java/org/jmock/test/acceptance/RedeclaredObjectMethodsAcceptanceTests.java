@@ -4,7 +4,7 @@ import java.util.Vector;
 
 import junit.framework.TestCase;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.api.ExpectationError;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -46,7 +46,7 @@ public class RedeclaredObjectMethodsAcceptanceTests extends TestCase {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         final Vector<Object> mock = (Vector<Object>)context.mock(Vector.class);
         
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             atLeast(1).of (mock).size(); will(returnValue(2));
         }});
         

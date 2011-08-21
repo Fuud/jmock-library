@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import junit.framework.TestCase;
 
 import org.hamcrest.Matcher;
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.internal.matcher.MethodNameMatcher;
 
@@ -22,7 +22,7 @@ public class HamcrestTypeSafetyAcceptanceTests extends TestCase {
     MockedType mock = context.mock(MockedType.class, "mock");
     
     public void testMatchersCanCopeWithDifferentArgumentTypes() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             exactly(1).of (anything()).method(withName("m")).with(startsWith("x"));
             exactly(1).of (anything()).method(withName("m")).with(greaterThan(0));
         }});

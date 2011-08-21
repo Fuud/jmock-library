@@ -1,6 +1,6 @@
 package example.announcer;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Sequence;
 import org.jmock.integration.junit3.MockObjectTestCase;
 
@@ -31,7 +31,7 @@ public class AnnouncerTests extends MockObjectTestCase {
 	public void testAnnouncesToRegisteredListenersInOrderOfAddition() {
 		final Sequence eventOrder = sequence("eventOrder");
 		
-		checking(new Expectations() {protected void expect() throws Exception{
+		checking(new ExpectationsExt() {protected void expect() throws Exception{
 			oneOf (listener1).eventA(); inSequence(eventOrder);
 			oneOf (listener2).eventA(); inSequence(eventOrder);
 			oneOf (listener1).eventB(); inSequence(eventOrder);
@@ -43,7 +43,7 @@ public class AnnouncerTests extends MockObjectTestCase {
 	}
 	
 	public void testPassesEventArgumentsToListeners() {
-		checking(new Expectations() {protected void expect() throws Exception{
+		checking(new ExpectationsExt() {protected void expect() throws Exception{
 			oneOf (listener1).eventWithArguments(1, 2);
 			oneOf (listener2).eventWithArguments(1, 2);
 			oneOf (listener1).eventWithArguments(3, 4);
@@ -57,7 +57,7 @@ public class AnnouncerTests extends MockObjectTestCase {
 	public void testCanRemoveListeners() {
 		announcer.removeListener(listener1);
 		
-		checking(new Expectations() {protected void expect() throws Exception{
+		checking(new ExpectationsExt() {protected void expect() throws Exception{
 			oneOf (listener2).eventA();
 		}});
 		
@@ -65,7 +65,7 @@ public class AnnouncerTests extends MockObjectTestCase {
 	}
 	
 	public void testDoesNotAllowListenersToThrowCheckedExceptions() throws Exception {
-		checking(new Expectations() {protected void expect() throws Exception{
+		checking(new ExpectationsExt() {protected void expect() throws Exception{
 			allowing (listener1).badEvent(); will(throwException(new CheckedException()));
 		}});
 		

@@ -1,6 +1,6 @@
 package example.sniper;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.integration.junit3.MockObjectTestCase;
 
 public class AuctionSniperTests extends MockObjectTestCase {
@@ -17,7 +17,7 @@ public class AuctionSniperTests extends MockObjectTestCase {
     public void testTriesToBeatTheLatestHighestBid() throws Exception {
         final Money expectedBid = beatableBid.add(increment);
 
-        checking(new Expectations() {protected void expect() throws Exception{
+        checking(new ExpectationsExt() {protected void expect() throws Exception{
             oneOf (auction).bid(expectedBid);
         }});
 
@@ -25,15 +25,15 @@ public class AuctionSniperTests extends MockObjectTestCase {
     }
 
     public void testWillNotBidPriceGreaterThanMaximum() throws Exception {
-        checking(new Expectations() {protected void expect() throws Exception{
+        checking(new ExpectationsExt() {protected void expect() throws Exception{
             ignoring (listener);
-            never (auction).bid(with(Expectations.any(Money.class)));
+            never (auction).bid(with(ExpectationsExt.any(Money.class)));
         }});
         sniper.bidAccepted(auction, unbeatableBid);
     }
 
     public void testWillLimitBidToMaximum() throws Throwable {
-        checking(new Expectations() {protected void expect() throws Exception{
+        checking(new ExpectationsExt() {protected void expect() throws Exception{
             exactly(1).of (auction).bid(maximumBid);
         }});
 
@@ -43,7 +43,7 @@ public class AuctionSniperTests extends MockObjectTestCase {
     public void testWillNotBidWhenToldAboutBidsOnOtherItems() throws Throwable {
         final Auction otherLot = mock(Auction.class, "otherLot");
 
-        checking(new Expectations() {protected void expect() throws Exception{
+        checking(new ExpectationsExt() {protected void expect() throws Exception{
            never (otherLot).bid(new Money(10));
         }});
 
@@ -51,7 +51,7 @@ public class AuctionSniperTests extends MockObjectTestCase {
     }
 
     public void testWillAnnounceItHasFinishedIfPriceGoesAboveMaximum() {
-        checking(new Expectations() {protected void expect() throws Exception{
+        checking(new ExpectationsExt() {protected void expect() throws Exception{
             exactly(1).of (listener).sniperFinished(sniper);
         }});
 
@@ -61,9 +61,9 @@ public class AuctionSniperTests extends MockObjectTestCase {
     public void testCatchesExceptionsAndReportsThemToErrorListener() throws Exception {
         final AuctionException exception = new AuctionException("test");
 
-        checking(new Expectations() {protected void expect() throws Exception{
-            allowing (auction).bid(with(Expectations.any(Money.class)));
-                will(Expectations.throwException(exception));
+        checking(new ExpectationsExt() {protected void expect() throws Exception{
+            allowing (auction).bid(with(ExpectationsExt.any(Money.class)));
+                will(ExpectationsExt.throwException(exception));
             exactly(1).of (listener).sniperBidFailed(sniper, exception);
         }});
 

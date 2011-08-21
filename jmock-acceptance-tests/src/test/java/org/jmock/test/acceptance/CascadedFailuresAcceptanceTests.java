@@ -2,7 +2,7 @@ package org.jmock.test.acceptance;
 
 import junit.framework.TestCase;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.api.ExpectationError;
 
@@ -32,7 +32,7 @@ public class CascadedFailuresAcceptanceTests extends TestCase {
     
     @Override
     public void setUp() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             allowing (mock).realExpectationFailure(1);
         }});
     }

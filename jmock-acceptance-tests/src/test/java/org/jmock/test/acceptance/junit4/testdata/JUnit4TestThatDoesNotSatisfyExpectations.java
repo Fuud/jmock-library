@@ -1,6 +1,6 @@
 package org.jmock.test.acceptance.junit4.testdata;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -14,7 +14,7 @@ public class JUnit4TestThatDoesNotSatisfyExpectations {
     
     @Test
     public void doesNotSatisfyExpectations() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             oneOf (runnable).run();
         }});
         
