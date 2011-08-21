@@ -37,8 +37,7 @@ public class ClassLoaderAcceptanceTests extends TestCase {
         mockery.mock(classLoader.loadClass("ClassFromOtherClassLoader"));
     }
     
-    // I've been unable to reproduce the behaviour of the Maven Surefire plugin in plain JUnit tests
-    public void DISABLED_testMockingClassFromThreadContextClassLoader() throws Throwable {
+    public void testMockingClassFromThreadContextClassLoader() throws Throwable {
         Runnable task = new Runnable() {
             public void run() {
                 try {
