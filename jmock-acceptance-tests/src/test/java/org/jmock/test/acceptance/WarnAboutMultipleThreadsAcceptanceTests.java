@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 import junit.framework.TestCase;
 
 import org.hamcrest.Matchers;
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.lib.concurrent.Blitzer;
 import testdata.MockedType;
@@ -40,7 +40,7 @@ public class WarnAboutMultipleThreadsAcceptanceTests extends TestCase {
         
         final MockedType mock = mockery.mock(MockedType.class, "mock");
         
-        mockery.checking(new Expectations() {protected void expect() throws Exception{
+        mockery.checking(new ExpectationsExt() {protected void expect() throws Exception{
             allowing (mock).doSomething();
         }});
         

@@ -12,7 +12,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.Sequence;
 import org.jmock.api.Action;
@@ -40,7 +40,7 @@ public class DeterministicSchedulerTests extends TestCase {
         
         final Sequence executionOrder = mockery.sequence("executionOrder");
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(commandA).run();
                 inSequence(executionOrder);
@@ -62,7 +62,7 @@ public class DeterministicSchedulerTests extends TestCase {
         
         final Sequence executionOrder = mockery.sequence("executionOrder");
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(commandA).run();
                 inSequence(executionOrder);
@@ -83,7 +83,7 @@ public class DeterministicSchedulerTests extends TestCase {
     public void testCanScheduleCommandAndReturnFuture() throws InterruptedException, ExecutionException {
         Future<?> future = scheduler.submit(commandA);
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(commandA).run();
             }
@@ -100,7 +100,7 @@ public class DeterministicSchedulerTests extends TestCase {
     public void testCanScheduleCommandAndResultAndReturnFuture() throws InterruptedException, ExecutionException {
         Future<String> future = scheduler.submit(commandA, "result1");
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(commandA).run();
             }
@@ -114,7 +114,7 @@ public class DeterministicSchedulerTests extends TestCase {
     public void testCanScheduleCallableAndReturnFuture() throws Exception {
         Future<String> future = scheduler.submit(callableA);
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(callableA).call();
                 will(returnValue("result2"));
@@ -127,7 +127,7 @@ public class DeterministicSchedulerTests extends TestCase {
     }
 
     public void testScheduledCallablesCanReturnNull() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(callableA).call();
                 will(returnValue(null));
@@ -146,7 +146,7 @@ public class DeterministicSchedulerTests extends TestCase {
     public void testExceptionThrownByScheduledCallablesIsThrownFromFuture() throws Exception {
         final Throwable thrown = new ExampleException();
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(callableA).call();
                 will(throwException(thrown));
@@ -171,7 +171,7 @@ public class DeterministicSchedulerTests extends TestCase {
         
         scheduler.tick(9, TimeUnit.SECONDS);
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(commandA).run();
             }
@@ -184,7 +184,7 @@ public class DeterministicSchedulerTests extends TestCase {
         scheduler.schedule(commandA, 1, TimeUnit.MILLISECONDS);
         scheduler.schedule(commandB, 2, TimeUnit.MILLISECONDS);
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(commandA).run();
                 oneOf(commandB).run();
@@ -198,7 +198,7 @@ public class DeterministicSchedulerTests extends TestCase {
         scheduler.schedule(commandA, 1, TimeUnit.MILLISECONDS);
         scheduler.schedule(commandD, 2, TimeUnit.MILLISECONDS);
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(commandA).run();
                 will(schedule(commandB));
@@ -215,7 +215,7 @@ public class DeterministicSchedulerTests extends TestCase {
     public void testCanExecuteCommandsThatRepeatWithFixedDelay() {
         scheduler.scheduleWithFixedDelay(commandA, 2L, 3L, TimeUnit.SECONDS);
         
-        mockery.checking(new Expectations() {protected void expect() throws Exception{
+        mockery.checking(new ExpectationsExt() {protected void expect() throws Exception{
             exactly(3).of(commandA).run();
         }});
         
@@ -225,7 +225,7 @@ public class DeterministicSchedulerTests extends TestCase {
     public void testCanExecuteCommandsThatRepeatAtFixedRateButAssumesThatCommandsTakeNoTimeToExecute() {
         scheduler.scheduleAtFixedRate(commandA, 2L, 3L, TimeUnit.SECONDS);
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 exactly(3).of(commandA).run();
             }
@@ -242,7 +242,7 @@ public class DeterministicSchedulerTests extends TestCase {
         future.cancel(dontCare);
         assertTrue(future.isCancelled());
         
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 never(commandA);
             }
@@ -254,7 +254,7 @@ public class DeterministicSchedulerTests extends TestCase {
     static final int TIMEOUT_IGNORED = 1000;
     
     public void testCanScheduleCallablesAndGetTheirResultAfterTheyHaveBeenExecuted() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(callableA).call();
                 will(returnValue("A"));

@@ -1,6 +1,6 @@
 package org.jmock.test.acceptance;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 
@@ -24,7 +24,7 @@ public class MockingClassesAcceptanceTests extends TestCase {
     public void testCanMockClassesWithMethodsThatReturnFinalClasses() {
         final FinalClass result = new FinalClass();
         
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             oneOf (mock).returnInstanceOfFinalClass(); will(returnValue(result));
         }});
         

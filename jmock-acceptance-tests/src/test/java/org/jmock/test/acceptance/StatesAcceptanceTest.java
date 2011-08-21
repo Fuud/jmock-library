@@ -2,7 +2,7 @@ package org.jmock.test.acceptance;
 
 import junit.framework.TestCase;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.States;
 import org.jmock.api.ExpectationError;
@@ -16,7 +16,7 @@ public class StatesAcceptanceTest extends TestCase {
     States readiness = context.states("readiness");
     
     public void testCanConstrainExpectationsToOccurWithinAGivenState() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             allowing (mock).method1(); when(readiness.is("ready"));
             allowing (mock).doSomething(); then(readiness.is("ready"));
         }});
@@ -29,7 +29,7 @@ public class StatesAcceptanceTest extends TestCase {
     }
     
     public void testAllowsExpectationsToOccurInCorrectState() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             allowing (mock).method1(); when(readiness.is("ready"));
             allowing (mock).doSomething(); then(readiness.is("ready"));
         }});
@@ -39,7 +39,7 @@ public class StatesAcceptanceTest extends TestCase {
     }
     
     public void testCanStartInASpecificState() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             allowing (mock).method1(); when(readiness.is("ready"));
         }});
 
@@ -53,7 +53,7 @@ public class StatesAcceptanceTest extends TestCase {
         States fruitiness = context.states("fruitiness");
         fruitiness.startsAs("apple");
         
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             allowing (mock).method1(); when(readiness.is("ready"));
         }});
         
@@ -74,7 +74,7 @@ public class StatesAcceptanceTest extends TestCase {
         private static class TestException extends RuntimeException {}
     
     public void testSwitchesStateWhenMethodThrowsAnException() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             oneOf (mock).method1(); will(throwException(new TestException())); 
                 then(readiness.is("ready"));
             oneOf (mock).method2(); when(readiness.is("ready"));

@@ -1,7 +1,7 @@
 package org.jmock.test.acceptance;
 
 import junit.framework.TestCase;
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 
 public class ArrayParameterTypesAcceptanceTests extends TestCase {
@@ -23,7 +23,7 @@ public class ArrayParameterTypesAcceptanceTests extends TestCase {
     private final Object[] objectAr = new Object[]{new Object(), new Object()};
     
     public void testCanSetExpectationsWithMatchersForMethodsWithArgumentsOfPrimitiveTypes() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             exactly(1).of (mock).withPrimitiveArray(
                     with(equal(boolAr)),
                     with(equal(byteAr)),
@@ -42,7 +42,7 @@ public class ArrayParameterTypesAcceptanceTests extends TestCase {
     }
 
     public void testCanSetExpectationsWithLiteralsForMethodsWithArgumentsOfPrimitiveTypes() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             exactly(1).of (mock).withPrimitiveArray(boolAr, byteAr, shortAr, intAr, longAr, floatAr, doubleAr);
             exactly(1).of(mock).withObjectArray(with(equal(objectAr)));
         }});

@@ -1,7 +1,7 @@
 package org.jmock.lib.concurrent;
 
 import junit.framework.TestCase;
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.Sequence;
 import org.jmock.api.Action;
@@ -27,7 +27,7 @@ public class DeterministicExecutorTests extends TestCase {
         
         final Sequence executionOrder = mockery.sequence("executionOrder");
 
-        mockery.checking(new Expectations() {protected void expect() throws Exception{
+        mockery.checking(new ExpectationsExt() {protected void expect() throws Exception{
             oneOf (commandA).run(); inSequence(executionOrder);
             oneOf (commandB).run(); inSequence(executionOrder);
         }});
@@ -41,7 +41,7 @@ public class DeterministicExecutorTests extends TestCase {
         
         final Sequence executionOrder = mockery.sequence("executionOrder");
         
-        mockery.checking(new Expectations() {protected void expect() throws Exception{
+        mockery.checking(new ExpectationsExt() {protected void expect() throws Exception{
             oneOf (commandA).run(); inSequence(executionOrder); will(schedule(commandC));
             oneOf (commandB).run(); inSequence(executionOrder); will(schedule(commandD));
             never (commandC).run();
@@ -57,7 +57,7 @@ public class DeterministicExecutorTests extends TestCase {
         
         final Sequence executionOrder = mockery.sequence("executionOrder");
         
-        mockery.checking(new Expectations() {protected void expect() throws Exception{
+        mockery.checking(new ExpectationsExt() {protected void expect() throws Exception{
             oneOf (commandA).run(); inSequence(executionOrder); will(schedule(commandC));
             oneOf (commandB).run(); inSequence(executionOrder); will(schedule(commandD));
             oneOf (commandC).run(); inSequence(executionOrder);

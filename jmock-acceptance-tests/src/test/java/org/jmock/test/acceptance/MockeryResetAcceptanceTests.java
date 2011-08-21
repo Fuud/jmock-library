@@ -1,6 +1,6 @@
 package org.jmock.test.acceptance;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.api.ExpectationError;
 import org.junit.Test;
@@ -23,7 +23,7 @@ public class MockeryResetAcceptanceTests {
 
     @Test
     public void testResetNotSatisfied() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             @Override
             protected void expect() throws Exception {
                 oneOf(mock).doSomething();
@@ -36,7 +36,7 @@ public class MockeryResetAcceptanceTests {
 
     @Test
     public void testResetSatisfied() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             @Override
             protected void expect() throws Exception {
                 allowing(mock).returnInt();
@@ -46,7 +46,7 @@ public class MockeryResetAcceptanceTests {
         assertEquals(1, mock.returnInt());
         mockery.reset();
 
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             @Override
             protected void expect() throws Exception {
                 allowing(mock).returnInt();
@@ -58,7 +58,7 @@ public class MockeryResetAcceptanceTests {
 
     @Test
     public void testAssertAndResetNotSatisfied() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             @Override
             protected void expect() throws Exception {
                 oneOf(mock).doSomething();

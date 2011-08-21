@@ -5,7 +5,7 @@ import java.util.Iterator;
 
 import junit.framework.TestCase;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 
 public class ReturningIteratorsAcceptanceTests extends TestCase {
@@ -19,7 +19,7 @@ public class ReturningIteratorsAcceptanceTests extends TestCase {
     Iterators iterators = context.mock(Iterators.class);
     
     public void testReturnsIteratorsOverCollectionOfValues() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             allowing (iterators).i(); will(returnIterator("a", "b", "c"));
         }});
         
@@ -30,7 +30,7 @@ public class ReturningIteratorsAcceptanceTests extends TestCase {
     }
     
     public void testReturnsEnumerationsOverCollectionOfValues() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             allowing (iterators).e(); will(returnEnumeration("x", "y", "z"));
         }});
         

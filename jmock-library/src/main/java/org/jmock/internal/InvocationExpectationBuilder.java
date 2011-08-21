@@ -33,6 +33,7 @@ public class InvocationExpectationBuilder
     private Set<Byte> forbiddenNumbers = new HashSet<Byte>();
 
     private BuildPhase buildPhase;
+    private boolean oldStyleBuilding = false;
 
     public Expectation toExpectation(Action defaultAction) {
         if (needsDefaultAction) {
@@ -54,6 +55,18 @@ public class InvocationExpectationBuilder
         } else {
             objectParametersValueToMatchers.put(parameterValue, parameterMatcher);
         }
+    }
+
+    /**
+     * Add captured matcher
+     *
+     * @param matcher matcher to put in list
+     * @deprecated Do not use it. Use putParameterValueToMatcher instead.
+     */
+    @Deprecated()
+    public void addParameterMatcher(Matcher<?> matcher) {
+        oldStyleBuilding = true;
+        capturedParameterMatchers.add(matcher);
     }
 
     public void addOrderingConstraint(OrderingConstraint constraint) {
@@ -101,6 +114,8 @@ public class InvocationExpectationBuilder
             expectation.setParametersMatcher(new AllParametersMatcher(capturedParameterMatchers));
         } else if (capturedParameterMatchers.isEmpty()) {
             expectation.setParametersMatcher(new AllParametersMatcher(invocation.getParametersAsArray()));
+        } else if (oldStyleBuilding) {
+            throw new IllegalArgumentException("not all parameters were given explicit matchers: either all parameters must be specified by matchers or all must be specified by values, you cannot mix matchers and values");
         } else {
             checkForBooleans(invocation);
             checkForDuplicates(invocation);
@@ -259,7 +274,7 @@ public class InvocationExpectationBuilder
     public static final class DuplicatePrimitiveValuesFromWithAndFromActualParametersException extends RuntimeException {
     }
 
-    public enum BuildPhase{
+    public enum BuildPhase {
         SEARCH_FOR_ACCESSIBLE_TYPES,
         SEARCH_FOR_VALUES,
         BUILD_FINISHED

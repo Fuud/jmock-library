@@ -2,7 +2,7 @@ package org.jmock.test.acceptance;
 
 import junit.framework.TestCase;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.api.ExpectationError;
 import org.jmock.api.ExpectationErrorTranslator;
@@ -27,7 +27,7 @@ public class ExpectationErrorTranslationAcceptanceTests extends TestCase {
     }
     
     public void testMockeryCanTranslateExpectationErrorsIntoDifferentExceptionTypeWhenUnexpectedInvocationOccurs() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             exactly(1).of (mock).method1();
         }});
         
@@ -43,7 +43,7 @@ public class ExpectationErrorTranslationAcceptanceTests extends TestCase {
     }
     
     public void testMockeryCanTranslateExpectationErrorsIntoDifferentExceptionTypeWhenMockeryIsNotSatisfied() {
-        context.checking(new Expectations() {protected void expect() throws Exception {
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
             exactly(1).of (mock).method1();
         }});
         

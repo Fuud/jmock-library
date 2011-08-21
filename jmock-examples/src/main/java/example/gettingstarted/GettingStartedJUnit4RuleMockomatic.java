@@ -1,6 +1,6 @@
 package example.gettingstarted;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.auto.Mock;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
@@ -22,7 +22,7 @@ public class GettingStartedJUnit4RuleMockomatic {
         final String message = "message";
 
         // expectations
-        context.checking(new Expectations() {protected void expect() throws Exception{
+        context.checking(new ExpectationsExt() {protected void expect() throws Exception{
             oneOf(subscriber).receive(message);
         }});
 

@@ -22,7 +22,7 @@ import java.util.*;
  *
  * @author nat
  */
-public abstract class Expectations implements ExpectationBuilder,
+public abstract class ExpectationsExt implements ExpectationBuilder,
         CardinalityClause, ArgumentConstraintPhrases, ActionClause {
 
     private List<InvocationExpectationBuilder> builders = new ArrayList<InvocationExpectationBuilder>();

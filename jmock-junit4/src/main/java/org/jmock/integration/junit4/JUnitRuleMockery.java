@@ -23,7 +23,7 @@ import static org.junit.Assert.fail;
  *     
  *  @Test
  *  public void doesSatisfyExpectations() {
- *    context.checking(new Expectations() {protected void expect() throws Exception{
+ *    context.checking(new ExpectationsExt() {protected void expect() throws Exception{
  *      oneOf (runnable).run();
  *    }});
  *          

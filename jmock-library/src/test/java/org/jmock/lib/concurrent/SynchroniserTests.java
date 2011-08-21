@@ -6,7 +6,7 @@ import static org.junit.Assert.fail;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.States;
 import org.jmock.lib.AssertionErrorTranslator;
@@ -32,7 +32,7 @@ public class SynchroniserTests {
     
     @Test(timeout=250)
     public void allowsMultipleThreadsToCallMockObjects() throws InterruptedException {
-        mockery.checking(new Expectations() {protected void expect() throws Exception{
+        mockery.checking(new ExpectationsExt() {protected void expect() throws Exception{
             exactly(blitzer.totalActionCount()).of(mockObject).action();
         }});
         
@@ -51,7 +51,7 @@ public class SynchroniserTests {
         
         final States threads = mockery.states("threads");
         
-        mockery.checking(new Expectations() {protected void expect() throws Exception{
+        mockery.checking(new ExpectationsExt() {protected void expect() throws Exception{
             exactly(blitzer.totalActionCount()).of(mockObject).action();
                 when(threads.isNot("finished"));
                 
@@ -75,7 +75,7 @@ public class SynchroniserTests {
     public void canWaitForAStateMachineToEnterAGivenStateWithinSomeTimeout() throws InterruptedException {
         final States threads = mockery.states("threads");
         
-        mockery.checking(new Expectations() {protected void expect() throws Exception{
+        mockery.checking(new ExpectationsExt() {protected void expect() throws Exception{
             exactly(blitzer.totalActionCount()).of(mockObject).action();
                 when(threads.isNot("finished"));
                 
@@ -137,7 +137,7 @@ public class SynchroniserTests {
     public void throwsExpectationErrorIfExpectationFailsWhileWaitingForStateMachineEvenIfWaitSucceeds() throws InterruptedException {
         final States threads = mockery.states("threads");
         
-        mockery.checking(new Expectations() {protected void expect() throws Exception{
+        mockery.checking(new ExpectationsExt() {protected void expect() throws Exception{
             oneOf(mockObject).finished();
                 then(threads.is("finished"));
         }});

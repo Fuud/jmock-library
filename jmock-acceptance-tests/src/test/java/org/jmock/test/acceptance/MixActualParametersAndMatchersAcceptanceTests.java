@@ -1,7 +1,7 @@
 package org.jmock.test.acceptance;
 
 import junit.framework.TestCase;
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.junit.Test;
 
@@ -27,7 +27,7 @@ public class MixActualParametersAndMatchersAcceptanceTests extends TestCase {
 
     @Test
     public void testPrimitiveIsMatches() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(testData).method1(with(equal(expectedInteger1)), expectedBoolean2, expectedRunnable);
             }
@@ -40,7 +40,7 @@ public class MixActualParametersAndMatchersAcceptanceTests extends TestCase {
 
     @Test
     public void testWrappedPrimitiveIsMatches() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(testData).method1(expectedInteger1, with(equal(expectedBoolean2)), expectedRunnable);
             }
@@ -53,7 +53,7 @@ public class MixActualParametersAndMatchersAcceptanceTests extends TestCase {
 
     @Test
     public void testObjectsIsMatches() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(testData).method1(expectedInteger1, expectedBoolean2, with(equal(expectedRunnable)));
             }
@@ -66,7 +66,7 @@ public class MixActualParametersAndMatchersAcceptanceTests extends TestCase {
 
     @Test
     public void testManyValues() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(testData).method2((byte) 0, (byte) 1, with(equal((byte) 2)), with(equal((byte) 3)), with(equal((byte) 4)), with(equal((byte) 5)), with(equal((byte) 6)), with(equal((byte) 7)), with(equal((byte) 8)), with(equal((byte) 9)), with(equal((byte) 10)), with(equal((byte) 11)), with(equal((byte) 12)), with(equal((byte) 13)), with(equal((byte) 14)), with(equal((byte) 15)), with(equal((byte) 16)), with(equal((byte) 17)), with(equal((byte) 18)), with(equal((byte) 19)), with(equal((byte) 20)), with(equal((byte) 21)), with(equal((byte) 22)), with(equal((byte) 23)), with(equal((byte) 24)), with(equal((byte) 25)));
             }
@@ -79,7 +79,7 @@ public class MixActualParametersAndMatchersAcceptanceTests extends TestCase {
 
     @Test
     public void testManyCheckings() throws Exception {
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             protected void expect() throws Exception {
                 oneOf(testData).method2((byte) 0, (byte) 1, with(equal((byte) 2)), with(equal((byte) 3)), with(equal((byte) 4)), with(equal((byte) 5)), with(equal((byte) 6)), with(equal((byte) 7)), with(equal((byte) 8)), with(equal((byte) 9)), with(equal((byte) 10)), with(equal((byte) 11)), with(equal((byte) 12)), with(equal((byte) 13)), with(equal((byte) 14)), with(equal((byte) 15)), with(equal((byte) 16)), with(equal((byte) 17)), with(equal((byte) 18)), with(equal((byte) 19)), with(equal((byte) 20)), with(equal((byte) 21)), with(equal((byte) 22)), with(equal((byte) 23)), with(equal((byte) 24)), with(equal((byte) 25)));
                 oneOf(testData).method3((byte) 25, (byte) 24, with(equal((byte) 23)), with(equal((byte) 22)), with(equal((byte) 21)), with(equal((byte) 20)), with(equal((byte) 19)), with(equal((byte) 18)), with(equal((byte) 17)), with(equal((byte) 16)), with(equal((byte) 15)), with(equal((byte) 14)), with(equal((byte) 13)), with(equal((byte) 12)), with(equal((byte) 11)), with(equal((byte) 10)), with(equal((byte) 9)), with(equal((byte) 8)), with(equal((byte) 7)), with(equal((byte) 6)), with(equal((byte) 5)), with(equal((byte) 4)), with(equal((byte) 3)), with(equal((byte) 2)), with(equal((byte) 1)), with(equal((byte) 0)));

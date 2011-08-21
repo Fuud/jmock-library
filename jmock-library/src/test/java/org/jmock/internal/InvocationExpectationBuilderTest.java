@@ -3,10 +3,6 @@ package org.jmock.internal;
 import org.hamcrest.Matcher;
 import org.jmock.api.Expectation;
 import org.jmock.api.Invocation;
-import org.jmock.internal.CaptureControl;
-import org.jmock.internal.Cardinality;
-import org.jmock.internal.ExpectationCapture;
-import org.jmock.internal.InvocationExpectationBuilder;
 import org.jmock.lib.action.VoidAction;
 import org.junit.Test;
 
@@ -16,7 +12,7 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import static junit.framework.Assert.*;
-import static org.jmock.Expectations.equal;
+import static org.jmock.ExpectationsExt.equal;
 import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings({"unchecked"})

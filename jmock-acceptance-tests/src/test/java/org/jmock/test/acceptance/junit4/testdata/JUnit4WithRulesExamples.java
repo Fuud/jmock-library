@@ -1,6 +1,6 @@
 package org.jmock.test.acceptance.junit4.testdata;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Sequence;
 import org.jmock.States;
 import org.jmock.auto.Auto;
@@ -19,7 +19,7 @@ public class JUnit4WithRulesExamples {
         
         @Test
         public void doesSatisfyExpectations() {
-            context.checking(new Expectations() {protected void expect() throws Exception {
+            context.checking(new ExpectationsExt() {protected void expect() throws Exception {
                 oneOf (runnable).run();
             }});
             
@@ -33,7 +33,7 @@ public class JUnit4WithRulesExamples {
         
         @Test
         public void doesNotSatisfyExpectations() {
-            context.checking(new Expectations() {protected void expect() throws Exception {
+            context.checking(new ExpectationsExt() {protected void expect() throws Exception {
                 oneOf (runnable).run();
             }});
             
@@ -47,7 +47,7 @@ public class JUnit4WithRulesExamples {
         
         @Test
         public void doesNotSatisfyExpectations() {
-            context.checking(new Expectations() {protected void expect() throws Exception {
+            context.checking(new ExpectationsExt() {protected void expect() throws Exception {
                 oneOf (runnable).run();
             }});
             
@@ -61,7 +61,7 @@ public class JUnit4WithRulesExamples {
         
         @Test(expected=CheckedException.class)
         public void doesNotSatisfyExpectationsWhenExpectedExceptionIsThrown() throws CheckedException {
-            context.checking(new Expectations() {protected void expect() throws Exception {
+            context.checking(new ExpectationsExt() {protected void expect() throws Exception {
                 oneOf (withException).anotherMethod();
                 oneOf (withException).throwingMethod(); will(throwException(new CheckedException()));
             }});

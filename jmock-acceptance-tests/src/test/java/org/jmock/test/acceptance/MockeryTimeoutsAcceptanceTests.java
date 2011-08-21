@@ -1,6 +1,6 @@
 package org.jmock.test.acceptance;
 
-import org.jmock.Expectations;
+import org.jmock.ExpectationsExt;
 import org.jmock.Mockery;
 import org.jmock.api.ExpectationError;
 import org.jmock.lib.concurrent.Synchroniser;
@@ -19,7 +19,7 @@ public class MockeryTimeoutsAcceptanceTests {
 
     @Test(timeout = 1000)
     public void testWaitUntilSatisfaction() throws Exception{
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             @Override
             protected void expect() throws Exception {
                 oneOf(mock).doSomething();
@@ -61,7 +61,7 @@ public class MockeryTimeoutsAcceptanceTests {
 
     @Test(timeout = 10000)
     public void testExitWithErrorIfErrorWillThrown() throws Exception{
-        mockery.checking(new Expectations() {
+        mockery.checking(new ExpectationsExt() {
             @Override
             protected void expect() throws Exception {
                 oneOf(mock).method1();
