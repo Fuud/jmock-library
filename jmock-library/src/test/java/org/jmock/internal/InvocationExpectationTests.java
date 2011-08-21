@@ -12,10 +12,6 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
 import org.jmock.api.Invocation;
-import org.jmock.internal.Cardinality;
-import org.jmock.internal.InvocationExpectation;
-import org.jmock.internal.OrderingConstraint;
-import org.jmock.internal.SideEffect;
 import org.jmock.internal.matcher.AllParametersMatcher;
 import org.jmock.lib.action.ReturnValueAction;
 import org.jmock.support.AssertThat;
@@ -254,12 +250,12 @@ public class InvocationExpectationTests extends TestCase {
                                   "never invoked", StringDescription.toString(expectation));
         
         expectation.invoke(invocation);
-        AssertThat.stringIncludes("should describe as not invoked",
+        AssertThat.stringIncludes("should describe as invoked 1 time",
                                   "invoked 1 time", StringDescription.toString(expectation));
         
         expectation.invoke(invocation);
         expectation.invoke(invocation);
-        AssertThat.stringIncludes("should describe as not invoked",
+        AssertThat.stringIncludes("should describe as invoked 3 times",
                                   "invoked 3 times", StringDescription.toString(expectation));
     }
 
