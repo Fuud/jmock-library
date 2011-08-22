@@ -39,10 +39,12 @@ public class NullAndNonNullAcceptanceTests extends TestCase {
     }
 
     // A defect in Hamcrest
-    public void DISABLED_testNullArrayParameter() {
-        context.checking(new ExpectationsExt() {protected void expect() throws Exception {
-            allowing (mock).doSomethingWithArray(null);
-        }});
+    public void testNullArrayParameter() {
+        context.checking(new ExpectationsExt() {
+            protected void expect() throws Exception {
+                allowing(mock).doSomethingWithArray(null);
+            }
+        });
 
         mock.doSomethingWithArray(null);
 
