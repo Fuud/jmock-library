@@ -1,5 +1,6 @@
 package org.jmock;
 
+import javax.swing.text.html.HTMLDocument;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.core.*;
@@ -417,12 +418,16 @@ public abstract class ExpectationsExt implements ExpectationBuilder,
         return new ThrowAction(throwable);
     }
 
-    public static Action returnIterator(Collection<?> collection) {
+    public static Action returnIterator(Iterable<?> collection) {
         return new ReturnIteratorAction(collection);
     }
 
     public static <T> Action returnIterator(T... items) {
         return new ReturnIteratorAction(items);
+    }
+
+    public static <T> Action returnIterator(Iterator iterator) {
+        return returnValue(iterator);
     }
 
     public static Action returnEnumeration(Collection<?> collection) {
@@ -431,6 +436,22 @@ public abstract class ExpectationsExt implements ExpectationBuilder,
 
     public static <T> Action returnEnumeration(T... items) {
         return new ReturnEnumerationAction(items);
+    }
+
+    public static Action returnList(Collection<?> collection) {
+        return new ReturnListAction(collection);
+    }
+
+    public static <T> Action returnList(T... items) {
+        return new ReturnListAction(items);
+    }
+
+    public static Action returnSet(Collection<?> collection) {
+        return new ReturnSetAction(collection);
+    }
+
+    public static <T> Action returnSet(T... items) {
+        return new ReturnSetAction(items);
     }
 
     public static Action doAll(Action... actions) {

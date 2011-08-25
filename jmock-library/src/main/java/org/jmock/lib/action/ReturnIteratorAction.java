@@ -14,9 +14,9 @@ import org.jmock.api.Invocation;
  * @author nat
  */
 public class ReturnIteratorAction implements Action {
-    private Collection<?> collection;
+    private Iterable<?> collection;
     
-    public ReturnIteratorAction(Collection<?> collection) {
+    public ReturnIteratorAction(Iterable<?> collection) {
         this.collection = collection;
     }
     
