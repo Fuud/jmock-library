@@ -1,5 +1,6 @@
 package org.jmock;
 
+import javax.swing.text.html.HTMLDocument;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.core.*;
@@ -374,28 +375,11 @@ public abstract class ExpectationsExt implements ExpectationBuilder,
         return new IsSame<T>(value);
     }
 
+    /**
+     * Matches any value than can be assigned to <i>type</i> (instance of type or <i>null</i>)
+     */
     public static <T> Matcher<T> any(Class<T> type) {
-        return CoreMatchers.any(type);
-    }
-
-    public static <T> Matcher<T> anything() {
-        return new IsAnything<T>();
-    }
-
-    /**
-     * @deprecated use {@link #aNonNull} or {@link #any} until type inference actually works in a future version of Java
-     */
-    @Deprecated
-    public static Matcher<Object> a(Class<?> type) {
-        return new IsInstanceOf(type);
-    }
-
-    /**
-     * @deprecated use {@link #aNonNull} or {@link #any} until type inference actually works in a future version of Java
-     */
-    @Deprecated
-    public static Matcher<Object> an(Class<?> type) {
-        return new IsInstanceOf(type);
+        return CoreMatchers.anyOf(CoreMatchers.nullValue(type), CoreMatchers.isA(type));
     }
 
     public static <T> Matcher<T> aNull(@SuppressWarnings("unused") Class<T> type) {
@@ -403,7 +387,11 @@ public abstract class ExpectationsExt implements ExpectationBuilder,
     }
 
     public static <T> Matcher<T> aNonNull(@SuppressWarnings("unused") Class<T> type) {
-        return new IsNot<T>(new IsNull<T>());
+        return CoreMatchers.isA(type);
+    }
+
+    public static <T> Matcher<T> anything() {
+        return new IsAnything<T>();
     }
 
     /* Common actions
@@ -417,12 +405,16 @@ public abstract class ExpectationsExt implements ExpectationBuilder,
         return new ThrowAction(throwable);
     }
 
-    public static Action returnIterator(Collection<?> collection) {
+    public static Action returnIterator(Iterable<?> collection) {
         return new ReturnIteratorAction(collection);
     }
 
     public static <T> Action returnIterator(T... items) {
         return new ReturnIteratorAction(items);
+    }
+
+    public static <T> Action returnIterator(Iterator iterator) {
+        return returnValue(iterator);
     }
 
     public static Action returnEnumeration(Collection<?> collection) {
@@ -431,6 +423,22 @@ public abstract class ExpectationsExt implements ExpectationBuilder,
 
     public static <T> Action returnEnumeration(T... items) {
         return new ReturnEnumerationAction(items);
+    }
+
+    public static Action returnList(Collection<?> collection) {
+        return new ReturnListAction(collection);
+    }
+
+    public static <T> Action returnList(T... items) {
+        return new ReturnListAction(items);
+    }
+
+    public static Action returnSet(Collection<?> collection) {
+        return new ReturnSetAction(collection);
+    }
+
+    public static <T> Action returnSet(T... items) {
+        return new ReturnSetAction(items);
     }
 
     public static Action doAll(Action... actions) {
