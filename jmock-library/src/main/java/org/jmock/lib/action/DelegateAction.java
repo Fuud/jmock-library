@@ -22,6 +22,7 @@ public class DelegateAction implements Action {
     public Object invoke(Invocation invocation) throws Throwable {
         final Method method = invocation.getInvokedMethod();
         final Object[] parameters = invocation.getParametersAsArray();
+        method.setAccessible(true);
         try {
             return method.invoke(delegate, parameters);
         } catch (InvocationTargetException e) {
