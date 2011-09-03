@@ -50,7 +50,6 @@ public abstract class ExpectationsExt implements ExpectationBuilder,
                 expect();
                 return; // all is right
             } catch (ClassCastException e) {
-                System.out.println(e.getMessage());
                 lastVerifiedPosInObjects++;
                 Object objectOfExpectedClass = createObjectOfExpectedClass(e);
                 if (lastVerifiedPosInObjects < objectsFromWith.size()) {
